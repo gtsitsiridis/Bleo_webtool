@@ -13,7 +13,7 @@ shinyServer(function(input, output, session) {
   help <- list()
   
   help[["tab1"]] <-
-    HTML('<center><strong><p></strong></p></center>')
+    HTML('<center><strong><p>Instructions</strong></p></center>')
   help[["tab2"]] <-
     HTML('<center><strong><p></strong></p></center>')
   help[["tab3"]] <-
@@ -46,27 +46,38 @@ shinyServer(function(input, output, session) {
   }
   
   ### Reactive values
-  plots <- reactiveValues()
+  plots <- reactiveValues(umap_plot = NULL)
   
-  values <- reactiveValues()
+  values <- reactiveValues(gene = NULL)
   
   ### Pass input to values
-  observeEvent(input$value1, {
-    
+  observeEvent(input$gene, {
+    values$gene <- input$gene
   })
   
   ### Define gene and cell type selectors
-  output$selector1 <- renderUI({
-    selectInput("value1", "Query value1:", c("tmp1", "tmp2"))
+  output$gene_selector <- renderUI({
+    selectizeInput(
+      inputId = "gene",
+      label = "Query gene:",
+      choices = genes,
+      options = list(
+        placeholder = 'Please select an option below',
+        onInitialize = I('function() { this.setValue(""); }')
+      )
+    )
   })
   
   ### Create plots
-  output$plot1 <- renderPlotly({
+  output$umap_plot <- renderPlot({
     withProgress(session = session, value = 0.5, {
-      p <- ggplot2::qplot(1:10, 1:10, geom = "line")
-      class(p)[3] <- "plot1"
-      p <- ggplotly(check_save(p),
-                    source = "plot1")
+      gene <- values$gene
+      if(is.null(gene) || gene == ""){
+        return(NULL)
+      }
+      p <-plot_UMAP_colored_by_expr(gene, expression.file = expression.file)
+      class(p)[3] <- "umap_plot"
+      p <- check_save(p)
       p
     })
   })
@@ -85,7 +96,7 @@ shinyServer(function(input, output, session) {
         
         isolate(tab <- input$tabs)
         if (tab == "tab1") {
-          plot_names <- c("plot1")
+          plot_names <- c("umap_plot")
         }
         files <- sapply(plot_names, function(x) {
           p <- plots[[x]]
@@ -100,8 +111,8 @@ shinyServer(function(input, output, session) {
         zip(file, files)
       }
     )
-  o <- observeEvent(input$value1, {
-    if (!is.null(input$value1)) {
+  o <- observeEvent(input$gene, {
+    if (!is.null(input$gene)) {
       load_data()
       o$destroy()
     }

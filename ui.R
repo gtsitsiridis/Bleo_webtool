@@ -29,8 +29,8 @@ shinyUI(tagList(
       ),
       
       conditionalPanel(
-        "input.tabs == 'tab1'|input.tabs=='tab2'",
-        uiOutput("selector1"),
+        "input.tabs == 'tab1'",
+        uiOutput("gene_selector"),
         type = 2,
         color.background = "#222d32"
       )
@@ -65,7 +65,7 @@ shinyUI(tagList(
                 fluidRow(box(
                   collapsible = TRUE,
                   width = 12,
-                  spinner(plotlyOutput("plot1", height = "600px"))
+                  spinner(plotOutput("umap_plot", height = "600px"))
                 ))),
         tabItem(tabName = "tab2",
                 fluidRow(

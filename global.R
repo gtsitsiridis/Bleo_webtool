@@ -16,9 +16,13 @@ library(shinyjs)
 
 source("functions.R")
 ### File names
-# example.file <- "data/example"
+metadata.file <- "data/UMAP_metadata.txt"
+expression.file <- "data/Bleo_scaledData.h5"
 
 ### Load files
 # load(example)
+metadata <- read.delim(metafile)
+genes <- rhdf5::h5ls(expression.file)[, "name"]
 
-# print(paste("Example file:",example.file))
+print(paste("Expression file:", expression.file))
+print(paste("Metadata file:", metadata.file))
