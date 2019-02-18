@@ -3,9 +3,9 @@ plot_UMAP_colored_by_expr <- function(gene, expression.file="data/Bleo_scaledDat
   expr <- h5read(file = expression.file, name = gene)  
   
   # Cut extreme quantiles off
-  quants <- quantile(expr, c(0.05, 0.95))
-  expr[which(expr <= quants[1])] <- quants[1]
-  expr[which(expr >= quants[2])] <- quants[2]
+  #quants <- quantile(expr, c(0.05, 0.95))
+  #expr[which(expr <= quants[1])] <- quants[1]
+  #expr[which(expr >= quants[2])] <- quants[2]
   
   # Scale to 0 1
   expr <- (expr - min(expr)) / (max(expr) - min(expr))
