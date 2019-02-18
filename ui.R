@@ -11,7 +11,7 @@ shinyUI(tagList(
     skin = "black",
     dashboardHeader(
       titleWidth = 340,
-      title = HTML("Bleo Webtool -- To be changed"),
+      title = HTML("Mouse lung injury and regeneration webtool -- Schiller and Theis labs @ Helmholtz Zentrum München - German Research Center for Environmental Health"),
       tags$li(class = "dropdown",
               HTML(# "<img src='Overview_logos.png' style='padding-top:10px;padding-right:10px;' height='70'/>"
                 "<p>Add logo</p>"))
