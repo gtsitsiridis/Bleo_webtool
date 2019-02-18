@@ -21,7 +21,7 @@ expression.file <- "data/Bleo_scaledData.h5"
 
 ### Load files
 # load(example)
-metadata <- read.delim(metafile)
+metadata <- read.delim(metadata.file)
 genes <- rhdf5::h5ls(expression.file)[, "name"]
 
 print(paste("Expression file:", expression.file))
