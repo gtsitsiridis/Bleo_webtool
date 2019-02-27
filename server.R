@@ -82,6 +82,19 @@ shinyServer(function(input, output, session) {
     })
   })
   
+  output$spline_plot <- renderPlot({
+    withProgress(session = session, value = 0.5, {
+      gene <- values$gene
+      if(is.null(gene) || gene == ""){
+        return(NULL)
+      }
+      p <-plot_UMAP_colored_by_expr(gene, celltype, expression.file = expression.file)
+      class(p)[3] <- "spline_plot"
+      p <- check_save(p)
+      p
+    })
+  })
+  
   ### Extra features
   # Download plots
   output$download_plots_button <-
