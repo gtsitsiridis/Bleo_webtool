@@ -88,7 +88,7 @@ shinyServer(function(input, output, session) {
       if(is.null(gene) || gene == ""){
         return(NULL)
       }
-      p <-plot_UMAP_colored_by_expr(gene, celltype, expression.file = expression.file)
+      p <- genLinePlot(gene, celltype, expression.file = expression.file)
       class(p)[3] <- "spline_plot"
       p <- check_save(p)
       p
