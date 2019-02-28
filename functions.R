@@ -19,7 +19,7 @@ plot_UMAP_colored_by_expr <- function(gene, expression.file="data/Bleo_scaledDat
 }
 
 # Spline kinetics plot
-genLinePlot <- function(gene, clust, meta, col = "blue", type = "louvain", smooth = F){
+genLinePlot <- function(gene, clust, meta, col = "blue", type = "cell.type", smooth = F){
   genExp <- h5read("data/Bleo_scaledData.h5", gene)
   if(clust == "all"){
     print("Using full Data Set")
