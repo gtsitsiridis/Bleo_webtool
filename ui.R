@@ -69,7 +69,8 @@ shinyUI(tagList(
         tabItem(tabName = "tab2",
                 fluidRow(
                   box(collapsible = TRUE,
-                      width = 12)
+                      width = 12),
+                  spinner(plotOutput("spline_plot", height = "600px"))
                 )),
         tabItem(tabName = "tab3",
                 fluidRow(
