@@ -19,21 +19,18 @@ plot_UMAP_colored_by_expr <- function(gene, expression.file="data/Bleo_scaledDat
 }
 
 # Spline kinetics plot
-genLinePlot <- function(gene="Acta2", clust = "Fibroblasts", meta, col = "blue", type = "cell.type", smooth = F){
-  genExp <- h5read("data/Bleo_scaledData.h5", gene)
-  if(clust == "all"){
+genLinePlot <- function(gene="Acta2", clust = "Fibroblasts", meta, col = "blue", type = "cell.type", smooth = F, expression.file="data/Bleo_scaledData.h5"){
+  genExp <- h5read(expression.file, gene)
+  if(clust == "all") {
     print("Using full Data Set")
     cluster <- "all"
-  }
-  
-  else if(type == "louvain"){
+  }  else if (type == "louvain") {
     genExp = genExp[which(meta$res.2 %in% clust)]
-    meta <- meta[which(meta$res.2 %in% clust), ]
+    meta <- meta[which(meta$res.2 %in% clust),]
     cluster <- paste(clust, collapse = ", ")
-  }
-  else if(type == "cell.type"){
+  }  else if (type == "cell.type") {
     genExp = genExp[which(meta$cell.type %in% clust)]
-    meta <- meta[which(meta$cell.type %in% clust), ]
+    meta <- meta[which(meta$cell.type %in% clust),]
     cluster <- clust
   }
   identifier <- meta$identifier
@@ -68,7 +65,7 @@ genLinePlot <- function(gene="Acta2", clust = "Fibroblasts", meta, col = "blue",
   else{
     p <- ggplot(agg, aes(y = mean, x = day)) +   ## add col = id to have dot colour per sample
       geom_errorbar(aes(ymin=lower, ymax=upper), width=.3, col = col) +
-      geom_point(col = col) + ggtitle(title) +
+      geom_point(col = col) + ggtitle(gene) +
       stat_summary(fun.y = mean, geom = "smooth", lwd=1) +
       ylab(paste0("mean expression in ", cluster)) + xlab("days") +
       theme(plot.title = element_text(hjust = 0.5))
