@@ -11,7 +11,7 @@ plot_UMAP_colored_by_expr <- function(gene, expression.file="data/Bleo_scaledDat
   expr <- (expr - min(expr)) / (max(expr) - min(expr))
   
   # Generate UMAP plot
-  tmp <- data.frame(metadata, expr)
+  tmp <- data.frame(meta, expr)
   ggplot(tmp, aes(x = UMAP1, y = UMAP2, color=expr)) +
     geom_point(alpha = 0.8) +
     scale_colour_gradient(low = "grey", high = "darkblue") +
