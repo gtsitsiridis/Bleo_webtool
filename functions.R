@@ -29,8 +29,8 @@ genLinePlot <- function(gene="Acta2", clust = "Fibroblasts", meta, col = "blue",
     meta <- meta[which(meta$res.2 %in% clust),]
     cluster <- paste(clust, collapse = ", ")
   }  else if (type == "cell.type") {
-    genExp = genExp[which(meta$cell.type %in% clust)]
-    meta <- meta[which(meta$cell.type %in% clust),]
+    genExp = genExp[which(meta$cell.type_spline %in% clust)]
+    meta <- meta[which(meta$cell.type_spline %in% clust),]
     cluster <- clust
   }
   identifier <- meta$identifier
