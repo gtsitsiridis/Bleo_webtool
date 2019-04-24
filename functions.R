@@ -19,56 +19,19 @@ plot_UMAP_colored_by_expr <- function(gene, expression.file="data/Bleo_scaledDat
 }
 
 # Spline kinetics plot
-genLinePlot <- function(gene="Acta2", clust = "Fibroblasts", meta, col = "blue", type = "cell.type", smooth = F, expression.file="data/Bleo_scaledData.h5"){
-  genExp <- h5read(expression.file, gene)
-  if(clust == "all") {
-    print("Using full Data Set")
-    cluster <- "all"
-  }  else if (type == "louvain") {
-    genExp = genExp[which(meta$res.2 %in% clust)]
-    meta <- meta[which(meta$res.2 %in% clust),]
-    cluster <- paste(clust, collapse = ", ")
-  }  else if (type == "cell.type") {
-    genExp = genExp[which(meta$cell.type_spline %in% clust)]
-    meta <- meta[which(meta$cell.type_spline %in% clust),]
-    cluster <- clust
-  }
-  identifier <- meta$identifier
+plot_wholeLung_spline <- function(celltype, gene){
+  spline_results <- spline_results_list[[celltype]]
+  prop <- data.matrix(spline_results[, -c(1:3)])
+  day <- unlist(lapply(colnames(prop), function(x) strsplit(x, "_", fixed = T)[[1]][3]))
+  day[grep("PBS", colnames(prop))] <- "0"
+  day <- gsub("d", "", day)
+  day <- as.numeric(day)
   
-  ## Try excluding those Samples, where there are less than 5 cells in current cell type
-  tmp <- table(identifier)
-  ids <- names(tmp[tmp >= 5])
-  meta <- meta[which(meta$identifier %in% ids), ]
-  genExp = genExp[which(meta$identifier %in% ids)]
-  means <- unlist(lapply(split(genExp, meta$identifier), mean))
+  aframe <- data.frame(expression = prop[gene, ], day)
   
-  timepoint <- unique(meta[,c("identifier", "grouping")])
-  timepoint$grouping <- gsub("d", "", as.character(timepoint$grouping))
-  timepoint$grouping <- gsub("PBS", "0", timepoint$grouping)
-  data <- data.frame(expression = means, day = timepoint$grouping[match(names(means), timepoint$identifier)])
-  data$day <- as.numeric(as.character(data$day))
-  data <- na.omit(data)
-  
-  agg <- ddply(data, .(day), function(x) c(mean = mean(x$expression, na.rm = T), se = sd(x$expression, na.rm = T) / sqrt(length(x$expression))))
-  agg$lower <- agg$mean + agg$se
-  agg$upper <- agg$mean - agg$se
-  data$id <- unlist(lapply(rownames(data), function(x){strsplit(x, "_")[[1]][1]}))
-  
-  if(smooth == T){
-    p <- ggplot(data, aes(y = expression, x = day)) + 
-      geom_point(col = "palevioletred2") + ggtitle(gene) +
-      #stat_summary(fun.y = mean, geom = "smooth", lwd = 1,) +
-      geom_smooth(se = F, col = col) +
-      ylab(paste0("mean expression in ", cluster)) + xlab("days") +
-      theme(plot.title = element_text(hjust = 0.5))
-  }
-  else{
-    p <- ggplot(agg, aes(y = mean, x = day)) +   ## add col = id to have dot colour per sample
-      geom_errorbar(aes(ymin=lower, ymax=upper), width=.3, col = col) +
-      geom_point(col = col) + ggtitle(gene) +
-      stat_summary(fun.y = mean, geom = "smooth", lwd=1) +
-      ylab(paste0("mean expression in ", cluster)) + xlab("days") +
-      theme(plot.title = element_text(hjust = 0.5))
-  }
-  p
+  ggplot(aframe, aes(y = expression, x = day)) + 
+    geom_point(col = "violet") + 
+    geom_smooth(method = "loess") +
+    ylab(paste("Percent of cells expressing", gene)) + xlab("Days") +
+    ggtitle(gene)
 }

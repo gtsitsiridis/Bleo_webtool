@@ -28,3 +28,5 @@ genes <- rhdf5::h5ls(expression.file)[, "name"]
 
 print(paste("Expression file:", expression.file))
 print(paste("Metadata file:", metadata.file))
+
+load("data/spline_results_list.RData")
