@@ -158,11 +158,7 @@ shinyServer(function(input, output, session) {
       p <-
         genLinePlot(
           gene,
-          clust,
-          meta = meta,
-          type = make.names(plot_type),
-          expression.file = expression.file,
-          smooth = smooth
+          clust
         )
       class(p)[3] <- "spline_plot"
       p <- check_save(p)
