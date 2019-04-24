@@ -19,7 +19,7 @@ plot_UMAP_colored_by_expr <- function(gene, expression.file="data/Bleo_scaledDat
 }
 
 # Spline kinetics plot
-plot_wholeLung_spline <- function(celltype, gene){
+genLinePlot <- function(celltype, gene){
   spline_results <- spline_results_list[[celltype]]
   prop <- data.matrix(spline_results[, -c(1:3)])
   day <- unlist(lapply(colnames(prop), function(x) strsplit(x, "_", fixed = T)[[1]][3]))
