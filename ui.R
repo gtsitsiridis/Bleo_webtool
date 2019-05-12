@@ -40,23 +40,12 @@ shinyUI(tagList(
         color.background = "#222d32"
       ),
       conditionalPanel(
-        "input.tabs == 'tab2'",
-        uiOutput("plot_type_selector"),
-        type = 2,
-        color.background = "#222d32"
-      ),
-      conditionalPanel(
-        "(input.tabs == 'tab2' && input.plot_type == 'cell type')",
+        "input.tabs =='tab2'",
         uiOutput("cell_type_selector"),
         type = 2,
         color.background = "#222d32"
-      ) ,
-      conditionalPanel(
-        "(input.tabs == 'tab2' && input.plot_type == 'louvain')",
-        uiOutput("res.2_selector"),
-        type = 2,
-        color.background = "#222d32"
-      )   # ,
+      )
+      # ,
       # HTML("<a id='github-btn'href='' target='_blank'><i class='fa fa-github'></i></a>")
     ),
     

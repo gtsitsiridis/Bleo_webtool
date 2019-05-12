@@ -16,17 +16,18 @@ library(shinyjs)
 
 source("functions.R")
 ### File names
-metadata.file <- "data/UMAP_metadata.txt"
 expression.file <- "data/Bleo_scaledData.h5"
+spline_results_list.file <- "data/spline_results_list.RData"
 
 ### Load files
-# load(example)
-meta <- read.delim(metadata.file)
-cell_types <- unique(na.omit(meta$cell.type_spline) %>% as.character())
-res.2 <- unique(na.omit(meta$res.2))
+# object name: spline_results_list
+load(spline_results_list.file)
+# We could also use an RDS object instead and do the following:
+# spline_results_list <- readRDS("data/spline_results_list.RDS")
+cell_types <- names(spline_results_list)
 genes <- rhdf5::h5ls(expression.file)[, "name"]
 
-print(paste("Expression file:", expression.file))
-print(paste("Metadata file:", metadata.file))
 
-load("data/spline_results_list.RData")
+print(paste("Expression file:", expression.file))
+print(paste("Spline_results_list file:", spline_results_list.file))
+

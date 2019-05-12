@@ -64,12 +64,7 @@ shinyServer(function(input, output, session) {
   observeEvent(input$cell_type, {
     values$cell_type <- input$cell_type
   })
-  observeEvent(input$plot_type, {
-    values$plot_type <- input$plot_type
-  })
-  observeEvent(input$res.2, {
-    values$res.2 <- input$res.2
-  })
+  
   ### Define gene and cell type selectors
   output$gene_selector <- renderUI({
     selectizeInput(
@@ -93,30 +88,6 @@ shinyServer(function(input, output, session) {
       )
     )
   })
-  output$res.2_selector <- renderUI({
-    selectizeInput(
-      inputId = "res.2",
-      label = "Query res.2:",
-      choices = res.2,
-      options = list(
-        placeholder = 'Please select an option below',
-        onInitialize = I('function() { this.setValue(""); }')
-      )
-    )
-  })
-  output$plot_type_selector <- renderUI({
-    radioButtons("plot_type", "Types", c("cell type", "louvain"), selected = "cell type")
-  })
-  observeEvent(plots$spline_plot, {
-    if (!is.null(plots$spline_plot)) {
-      output$smooth_button <- renderUI({
-        checkboxInput("smooth_button",
-                      "Smooth",
-                      value = values$smooth,
-                      width = "100%")
-      })
-    }
-  })
   
   ### Create plots
   output$umap_plot <- renderPlot({
@@ -126,7 +97,8 @@ shinyServer(function(input, output, session) {
         return(NULL)
       }
       p <-
-        plot_UMAP_colored_by_expr(gene, expression.file = expression.file)
+        try(plot_UMAP_colored_by_expr(gene, expression.file = expression.file),
+            silent = TRUE)
       class(p)[3] <- "umap_plot"
       p <- check_save(p)
       p
@@ -136,30 +108,13 @@ shinyServer(function(input, output, session) {
   output$spline_plot <- renderPlot({
     withProgress(session = session, value = 0.5, {
       gene <- values$gene
-      smooth <-
-        ifelse(is.null(input$smooth_button),
-               FALSE,
-               input$smooth_button)
-      values$smooth <- smooth
-      plot_type <- values$plot_type
-      clust <- NULL
-      if (!is.null(plot_type)) {
-        clust <-
-          ifelse((plot_type == "cell type"),
-                 values$cell_type,
-                 values$res.2)
-      } else{
-        return(NULL)
-      }
+      cell_type <- values$cell_type
       if (is.null(gene) ||
-          gene == "" || is.null(clust) || clust == "") {
+          gene == "" || is.null(cell_type) || cell_type == "") {
         return(NULL)
       }
-      p <-
-        genLinePlot(
-          gene,
-          clust
-        )
+      p <- try(genLinePlot(celltype = cell_type,
+                           gene = gene), silent = TRUE)
       class(p)[3] <- "spline_plot"
       p <- check_save(p)
       p
