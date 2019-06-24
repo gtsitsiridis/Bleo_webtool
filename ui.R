@@ -28,7 +28,7 @@ shinyUI(tagList(
       sidebarMenu(
         id = "tabs",
         menuItem("Tab1", tabName = "tab1"),
-        menuItem("Tab2", tabName = "tab2"),
+        menuItem("Whole lung time course regression", tabName = "tab2"),
         menuItem("Tab3", tabName = "tab3"),
         menuItem("Tab4", tabName = "tab4")
       ),
