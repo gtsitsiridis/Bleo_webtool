@@ -46,15 +46,19 @@ shinyServer(function(input, output, session) {
   }
   
   ### Reactive values
-  plots <- reactiveValues(umap_plot = NULL, spline_plot = NULL)
+  plots <- reactiveValues(
+    wholelung_distplot = NULL,
+    wholelung_dotplot = NULL,
+    hires_distplot = NULL,
+    hires_dotplot = NULL
+  )
   
   values <-
     reactiveValues(
       gene = NULL,
       cell_type = NULL,
-      smooth = FALSE,
-      res.2 = NULL,
-      plot_type = NULL
+      hires_markers_table = NULL,
+      wholelung_markers_table = NULL
     )
   
   ### Pass input to values
@@ -66,61 +70,137 @@ shinyServer(function(input, output, session) {
   })
   
   ### Define gene and cell type selectors
-  output$gene_selector <- renderUI({
-    selectizeInput(
-      inputId = "gene",
-      label = "Query gene:",
-      choices = genes,
-      options = list(
-        placeholder = 'Please select an option below',
-        onInitialize = I('function() { this.setValue(""); }')
-      )
-    )
+  output$tab1_resolution_selector <- renderUI({
+    selectInput("hires_resolution", "Select file:", markers_cell_types_files$hires)
   })
+  
+  output$tab2_resolution_selector <- renderUI({
+    selectInput("wholelung_resolution", "Select file:", markers_cell_types_files$wholelung)
+  })
+  
   output$cell_type_selector <- renderUI({
-    selectizeInput(
-      inputId = "cell_type",
-      label = "Query cell type:",
-      choices = cell_types,
-      options = list(
-        placeholder = 'Please select an option below',
-        onInitialize = I('function() { this.setValue(""); }')
-      )
-    )
+    selectInput("cell_type", "Query cell type:", cell_types)
+  })
+  output$gene_selector <- renderUI({
+    selectInput("gene", "Query gene/protein:", genes)
   })
   
   ### Create plots
-  output$umap_plot <- renderPlot({
-    withProgress(session = session, value = 0.5, {
-      gene <- values$gene
-      if (is.null(gene) || gene == "") {
-        return(NULL)
-      }
-      p <-
-        try(plot_UMAP_colored_by_expr(gene, expression.file = expression.file),
-            silent = TRUE)
-      class(p)[3] <- "umap_plot"
-      p <- check_save(p)
+  output$tab1_celltype_panel <- renderPlot({
+    gene_name <- values$gene
+    if (is.null(gene_name)|| gene_name=="") {
+      return()
+    }
+    withProgress(session = session, value = 0, {
+      setProgress(message = "Calculation in progress")
+      p <- try(dotPlot(gene_name, "hires"), silent = T)
+      class(p)[3] <- "hires_dotplot"
+      dotplot <-
+        check_save(p) + theme(plot.margin = unit(c(1, 2, 1, 1), "lines"))
+      incProgress(0.4, detail = "Dotplot")
+      
+      p <- try(genUMAPplot(gene_name, "hires"),
+               silent = T)
+      class(p)[3] <- "hires_distplot"
+      distplot <-
+        check_save(p) + theme(plot.margin = unit(c(1, 2, 1, 2), "lines"))
+      incProgress(0.4, detail = "UMAP")
+      
+      p<- grid.arrange(dotplot, distplot, widths = c(1, 1))
+      incProgress(0.2, detail = "Plotting...")
       p
     })
   })
   
-  output$spline_plot <- renderPlot({
-    withProgress(session = session, value = 0.5, {
-      gene <- values$gene
-      cell_type <- values$cell_type
-      if (is.null(gene) ||
-          gene == "" || is.null(cell_type) || cell_type == "") {
-        return(NULL)
-      }
-      p <- try(genLinePlot(celltype = cell_type,
-                           gene = gene), silent = TRUE)
-      class(p)[3] <- "spline_plot"
-      p <- check_save(p)
+  output$tab2_celltype_panel <- renderPlot({
+    gene_name <- values$gene
+    if (is.null(gene_name) || gene_name=="") {
+      return()
+    }
+    withProgress(session = session, value = 0, {
+      setProgress(message = "Calculation in progress")
+      p <- try(dotPlot(gene_name, "wholelung"), silent = T)
+      class(p)[3] <- "wholelung_dotplot"
+      dotplot <-
+        check_save(p) + theme(plot.margin = unit(c(1, 2, 1, 1), "lines"))
+      incProgress(0.4, detail = "Dotplot")
+      
+      p <- try(genUMAPplot(gene_name, "wholelung"),
+               silent = T)
+      class(p)[3] <- "wholelung_distplot"
+      distplot <-
+        check_save(p) + theme(plot.margin = unit(c(1, 2, 1, 2), "lines"))
+      incProgress(0.4, detail = "UMAP")
+      
+      p<- grid.arrange(dotplot, distplot, widths = c(1, 1))
+      incProgress(0.2, detail = "Plotting...")
       p
     })
   })
   
+  output$tab1_markers_table <- DT::renderDataTable({
+    cell_type <- values$cell_type
+    file <- input$hires_resolution
+    if (is.null(cell_type) || is.null(file)) {
+      return()
+    }
+    # gene <- values$gene
+    dt <- getMarkersTable(cell_type, "hires", file)
+    values$hires_markers_table <- dt
+    DT::datatable(
+      dt,
+      extensions = 'Buttons',
+      options = list(
+        pageLength = 25,
+        scrollX = TRUE,
+        scrollY = "400px",
+        searchHighlight = T,
+        dom = '<"top"Bf>rt<"bottom"lip><"clear">',
+        buttons = list(
+          'print',
+          list(extend =  "csv",
+               title = "file"),
+          list(extend =  "pdf",
+               title = "file")
+        )
+      ),
+      rownames = FALSE,
+      selection = list(mode = 'single',
+                       target = 'row')
+    )
+  })
+ 
+  output$tab2_markers_table <- DT::renderDataTable({
+    cell_type <- values$cell_type
+    file <- input$wholelung_resolution
+    if (is.null(cell_type) || is.null(file)) {
+      return()
+    }
+    dt <- getMarkersTable(cell_type, "wholelung", file)
+    values$wholelung_markers_table <- dt
+    DT::datatable(
+      dt,
+      extensions = 'Buttons',
+      options = list(
+        pageLength = 25,
+        scrollX = TRUE,
+        scrollY = "400px",
+        searchHighlight = T,
+        dom = '<"top"Bf>rt<"bottom"lip><"clear">',
+        buttons = list(
+          'print',
+          list(extend =  "csv",
+               title = "file"),
+          list(extend =  "pdf",
+               title = "file")
+        )
+      ),
+      rownames = FALSE,
+      selection = list(mode = 'single',
+                       target = 'row')
+    )
+  })
+   
   ### Extra features
   # Download plots
   output$download_plots_button <-
@@ -159,4 +239,21 @@ shinyServer(function(input, output, session) {
       o$destroy()
     }
   })
+  
+  #deal with selection from marker's table
+  observeEvent(input$tab1_markers_table_rows_selected, {
+    row_selected <- input$tab1_markers_table_rows_selected
+    dt <- values$hires_markers_table
+    new_gene_name <- dt[row_selected, "gene"]
+    values$gene <- unlist(new_gene_name)
+  })
+  
+  observeEvent(input$tab2_markers_table_rows_selected, {
+    row_selected <- input$tab2_markers_table_rows_selected
+    dt <- values$wholelung_markers_table
+    new_gene_name <- dt[row_selected, "gene"]
+    values$gene <-unlist(new_gene_name)
+  })
 })
+
+

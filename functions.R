@@ -58,3 +58,116 @@ emptyPlot <- function() {
   class(p)[4] <- "empty_plot"
   p
 }
+
+# Dot plot
+dotPlot <- function (gene_name = "Scgb1a1", dataset_name="hires") {
+  # Defaults
+  cols.use = c("lightgrey", "blue")
+  plot.legend = FALSE
+  do.return = FALSE
+  x.lab.rot = FALSE
+  
+  scale.func <- switch(EXPR = "radius",
+                       'size' = scale_size,
+                       'radius' = scale_radius,
+                       stop("'scale.by' must be either 'size' or 'radius'"))
+  
+  MinMax <- function (data, min, max) {
+    data2 <- data
+    data2[data2 > max] <- max
+    data2[data2 < min] <- min
+    return(data2)
+  }
+  
+  PercentAbove <- function (x, threshold) {
+    return(length(x = x[x > threshold]) / length(x = x))
+  }
+  
+  # Load gene expression
+  expression <-
+    h5read(expression_files[[dataset_name]], name = as.character(gene_name))
+  H5close() 
+  data.to.plot <- data.table(expression)
+  colnames(x = data.to.plot) <- "expression"
+  data.to.plot$id <- metadata[[dataset_name]]$cell.type
+  # filtering step: is there a cluster that has at least 10 cells.
+  if(data.to.plot[,sum(expression>0),by=id][,sum(V1 >= 5) == 0])
+    return(emptyPlot())
+  data.to.plot[, expression := (expression - mean(expression)) / sd(expression)]
+  setnames(data.to.plot, "expression", gene_name)
+  data.to.plot <-
+    data.to.plot %>% gather(key = genes.plot, value = expression,-c(id))
+  data.to.plot <- data.to.plot %>% group_by(id, genes.plot) %>%
+    dplyr::summarize(avg.exp = mean(expm1(x = expression)),
+                     pct.exp = PercentAbove(x = expression,  threshold = 0))
+  data.to.plot <-
+    data.to.plot %>% ungroup() %>% group_by(genes.plot) %>%
+    mutate(avg.exp.scale = scale(x = avg.exp)) %>% mutate(avg.exp.scale = MinMax(
+      data = avg.exp.scale,
+      max = 2.5,
+      min = -2.5
+    ))
+  data.to.plot$pct.exp[data.to.plot$pct.exp < 0] <- NA
+  data.to.plot <- as.data.frame(data.to.plot)
+  colnames(data.to.plot) <-
+    c("Cell_type", "Gene", "AvgExpr", "PctExpressed", "AvgRelExpr")
+  
+  # bad <-
+  #   c("red_blood_cells",
+  #     "Gamma-Delta_T_cells",
+  #     "low_quality_cells")
+  # data.to.plot <-
+  #   data.to.plot[-match(bad, as.character(data.to.plot$Cell_type)),]
+   # data.to.plot <-data.to.plot[-which(is.na(data.to.plot$Cell_type)),]
+    
+  celltype_order <- rev(cell_types)
+  
+  data.to.plot$Cell_type <-
+    factor(data.to.plot$Cell_type, levels = celltype_order)
+  
+  p <-
+    ggplot(data = data.to.plot, mapping = aes(x = Gene, y = Cell_type)) +
+    geom_point(mapping = aes(size = PctExpressed, color = AvgRelExpr)) +
+    scale.func(range = c(0, 10), limits = c(NA, NA)) +
+    theme(
+      axis.text.y = element_text(size = 13),
+      plot.margin = unit(c(1, 1, 1, 1), "cm"),
+      legend.text = element_text(size = 8),
+      legend.title = element_text(size = 8),
+      legend.position = c(0.75, 0.5),
+      axis.title.x = element_blank(),
+      axis.title.y = element_blank()
+    )
+  p
+}
+
+genUMAPplot <- function(gene_name = 'Frem1', dataset_name="hires") {
+  gene <- h5read(expression_files[[dataset_name]], name = as.character(gene_name))
+  umap_coord <- metadata[[dataset_name]][,.(UMAP1, UMAP2)]  
+  # gene.min <- quantile(gene, 0.01)
+  # gene.max <- quantile(gene, 0.99)
+  # gene[which(gene > gene.max)] <- gene.max
+  # gene[which(gene < gene.min)] <- gene.min
+  H5close()
+  dt <- cbind(umap_coord, expression = gene)
+  high <- "darkblue"
+  if (all(gene == 0)) {
+    high = "grey"
+    
+  }
+  ggplot(dt) + geom_point(aes(UMAP1, UMAP2, col = gene), alpha = .5) +
+    guides(col = F) +
+    ggtitle(gene_name) + scale_color_continuous(low = "grey", high = high)
+  
+}
+
+getMarkersTable <- function(cell_type = "Plasma cells",  dataset_name="hires", file) {
+  c_name <- "cluster"
+  if(dataset_name=="wholelung"){
+    c_name <- "cell.type"
+  }
+  markers_table <-  fread(file)
+  colnames(markers_table)[colnames(markers_table)==c_name] <- "c_name"
+  dt <-markers_table[c_name == cell_type,-c(which(colnames(markers_table) == "c_name")), with = FALSE]
+  dt
+}

@@ -27,8 +27,8 @@ shinyUI(tagList(
           style = "z-index:10;"),
       sidebarMenu(
         id = "tabs",
-        menuItem("Tab1", tabName = "tab1"),
-        menuItem("Whole lung time course regression", tabName = "tab2"),
+        menuItem("HiRes: Cell type signature", tabName = "tab1"),
+        menuItem("WholeLung: Cell type signature", tabName = "tab2"),
         menuItem("Tab3", tabName = "tab3"),
         menuItem("Tab4", tabName = "tab4")
       ),
@@ -40,7 +40,7 @@ shinyUI(tagList(
         color.background = "#222d32"
       ),
       conditionalPanel(
-        "input.tabs =='tab2'",
+        "input.tabs =='tab2'|| input.tabs =='tab1'",
         uiOutput("cell_type_selector"),
         type = 2,
         color.background = "#222d32"
@@ -75,18 +75,30 @@ shinyUI(tagList(
                 fluidRow(
                   box(
                     collapsible = TRUE,
-                    width = 12,
-                    spinner(plotOutput("umap_plot", height = "600px"))
+                    width = 8,
+                    spinner(plotOutput("tab1_celltype_panel", height = "600px"))
+                  )
+                  ,
+                  box(
+                    collapsible = TRUE,
+                    width = 4,
+                    uiOutput("tab1_resolution_selector"),
+                    spinner(DT::dataTableOutput("tab1_markers_table", height = "600px"))
                   )
                 )),
         tabItem(tabName = "tab2",
                 fluidRow(
                   box(
                     collapsible = TRUE,
-                    width = 12,
-                    spinner(plotOutput("spline_plot", height = "600px")),
-                    uiOutput("smooth_button")
+                    width = 8,
+                    spinner(plotOutput("tab2_celltype_panel", height = "600px"))
                   )
+                  ,
+                  box(
+                    collapsible = TRUE,
+                    width = 4,
+                    uiOutput("tab2_resolution_selector"),
+                    spinner(DT::dataTableOutput("tab2_markers_table", height = "600px")))
                 )),
         tabItem(tabName = "tab3",
                 fluidRow(box(
@@ -103,3 +115,5 @@ shinyUI(tagList(
     )
   )
 ))
+
+

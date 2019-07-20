@@ -3,5 +3,4 @@ Bleo_webtool.Rproj
 .Rhistory
 .RData
 .Ruserdata
-data/UMAP_metadata.txt
-data/spline_results_list.RData
+data/*
