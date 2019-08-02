@@ -70,23 +70,27 @@ shinyServer(function(input, output, session) {
   })
   
   ### Define gene and cell type selectors
-  output$tab1_resolution_selector <- renderUI({
+  output$tab2_resolution_selector <- renderUI({
     selectInput("hires_resolution", "Select file:", markers_cell_types_files$hires)
   })
   
-  output$tab2_resolution_selector <- renderUI({
+  output$tab1_resolution_selector <- renderUI({
     selectInput("wholelung_resolution", "Select file:", markers_cell_types_files$wholelung)
   })
   
   output$cell_type_selector <- renderUI({
-    selectInput("cell_type", "Query cell type:", cell_types)
+    if(input$tabs == "tab3"){
+      selectInput("cell_type", "Query cell type:", tab.cell_types)
+    }else{
+      selectInput("cell_type", "Query cell type:", cell_types)
+    }
   })
   output$gene_selector <- renderUI({
     selectInput("gene", "Query gene/protein:", genes)
   })
   
   ### Create plots
-  output$tab1_celltype_panel <- renderPlot({
+  output$tab2_celltype_panel <- renderPlot({
     gene_name <- values$gene
     if (is.null(gene_name)|| gene_name=="") {
       return()
@@ -112,7 +116,7 @@ shinyServer(function(input, output, session) {
     })
   })
   
-  output$tab2_celltype_panel <- renderPlot({
+  output$tab1_celltype_panel <- renderPlot({
     gene_name <- values$gene
     if (is.null(gene_name) || gene_name=="") {
       return()
@@ -138,7 +142,7 @@ shinyServer(function(input, output, session) {
     })
   })
   
-  output$tab1_markers_table <- DT::renderDataTable({
+  output$tab2_markers_table <- DT::renderDataTable({
     cell_type <- values$cell_type
     file <- input$hires_resolution
     if (is.null(cell_type) || is.null(file)) {
@@ -170,7 +174,7 @@ shinyServer(function(input, output, session) {
     )
   })
  
-  output$tab2_markers_table <- DT::renderDataTable({
+  output$tab1_markers_table <- DT::renderDataTable({
     cell_type <- values$cell_type
     file <- input$wholelung_resolution
     if (is.null(cell_type) || is.null(file)) {
@@ -200,7 +204,24 @@ shinyServer(function(input, output, session) {
                        target = 'row')
     )
   })
-   
+  
+  output$tab3_splinePlot <- renderPlot({
+    gene_name <- values$gene
+    cell_type <- values$cell_type
+    if (is.null(gene_name) || gene_name=="" || is.null(cell_type) || cell_type=="") {
+      return()
+    }
+    withProgress(session = session, value = 0, {
+      setProgress(message = "Calculation in progress")
+      p <- try(plotSingleGene(cell_type, gene_name), silent = T)
+      class(p)[3] <- "spline_plot"
+      p <-
+        check_save(p) + theme(plot.margin = unit(c(1, 2, 1, 1), "lines"))
+      incProgress(1, detail = "Plotting Time course differential expression...")
+      p
+    })
+  })
+  
   ### Extra features
   # Download plots
   output$download_plots_button <-
@@ -215,11 +236,14 @@ shinyServer(function(input, output, session) {
         
         isolate(tab <- input$tabs)
         if (tab == "tab1") {
-          plot_names <- c("umap_plot")
+          plot_names <- c("wholelung_plot")
         }
         if (tab == "tab2") {
-          plot_names <- c("spline_plot")
+          plot_names <- c("hires_plot")
         }
+        if (tab == "tab3") {
+          plot_names <- c("spline_plot")
+        } 
         files <- sapply(plot_names, function(x) {
           p <- plots[[x]]
           file_name <- paste0(x, ".pdf")
@@ -241,15 +265,15 @@ shinyServer(function(input, output, session) {
   })
   
   #deal with selection from marker's table
-  observeEvent(input$tab1_markers_table_rows_selected, {
-    row_selected <- input$tab1_markers_table_rows_selected
+  observeEvent(input$tab2_markers_table_rows_selected, {
+    row_selected <- input$tab2_markers_table_rows_selected
     dt <- values$hires_markers_table
     new_gene_name <- dt[row_selected, "gene"]
     values$gene <- unlist(new_gene_name)
   })
   
-  observeEvent(input$tab2_markers_table_rows_selected, {
-    row_selected <- input$tab2_markers_table_rows_selected
+  observeEvent(input$tab1_markers_table_rows_selected, {
+    row_selected <- input$tab1_markers_table_rows_selected
     dt <- values$wholelung_markers_table
     new_gene_name <- dt[row_selected, "gene"]
     values$gene <-unlist(new_gene_name)

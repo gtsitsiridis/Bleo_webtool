@@ -171,3 +171,24 @@ getMarkersTable <- function(cell_type = "Plasma cells",  dataset_name="hires", f
   dt <-markers_table[c_name == cell_type,-c(which(colnames(markers_table) == "c_name")), with = FALSE]
   dt
 }
+
+plotSingleGene <- function(celltype = 'fibroblasts', gene = "Tnc"){
+  res <- suppressWarnings(read_excel(tab.file, sheet = celltype))
+  tmp <- res
+  stats <- tmp[,1:3]
+  if(!gene %in% stats$gene){
+    stop("Gene not found")
+  }
+  prop <- as.numeric(tmp[which(stats$gene == gene), -c(1:3)])
+  nom <- colnames(tmp)[-(1:3)]
+  day <- unlist(lapply(nom, function(x) strsplit(x, '_', fixed = T)[[1]][3]))
+  day[grep('PBS', nom)] <- 'd0'
+  day <- gsub('d', '', day)
+  day <- as.numeric(day)
+
+  aframe <- data.frame(prop, day)
+  p <- ggplot(aframe, aes(y = prop, x = day)) +
+    geom_point(color = "violet") + geom_smooth(method = "loess") +
+    ylab(paste(gene, "expression")) + xlab("Days") + ggtitle(celltype)
+  p
+}

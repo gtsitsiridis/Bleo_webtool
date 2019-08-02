@@ -14,6 +14,7 @@ library(shiny)
 library(shinyjs)
 library(gridExtra)
 library(grid)
+library(readxl)
 
 
 source("functions.R")
@@ -34,6 +35,7 @@ metadata_files$hires <- "data/current/metadata/HiRes_metadata_final.txt"
 metadata_files$wholelung <- "data/current/metadata/WholeLung_metadata_final.txt"
 markers_cell_types.dir <- "data/current/markersCellTypes"
 genes.file <- "data/current/genes.txt"
+tab.file <- "data/current/Table_S2_(Realtime_regression).xlsx"
 
 metadata <- list()
 
@@ -55,3 +57,7 @@ markers_cell_types_files$wholelung <- list.files(file.path(markers_cell_types.di
 checkFile(genes.file)
 genes <- scan(what = character(), genes.file, sep = "\n")
 genes <- genes[order(genes)]
+checkFile(tab.file)
+tab.cell_types <- excel_sheets(path = tab.file)
+tab.cell_types <- tab.cell_types[tab.cell_types!="overview"]
+

@@ -27,20 +27,20 @@ shinyUI(tagList(
           style = "z-index:10;"),
       sidebarMenu(
         id = "tabs",
-        menuItem("HiRes: Cell type signature", tabName = "tab1"),
-        menuItem("WholeLung: Cell type signature", tabName = "tab2"),
-        menuItem("Tab3", tabName = "tab3"),
+        menuItem("WholeLung: Cell type signature", tabName = "tab1"),
+        menuItem("HiRes: Cell type signature", tabName = "tab2"),
+        menuItem("Time course differential expression", tabName = "tab3"),
         menuItem("Tab4", tabName = "tab4")
       ),
       
       conditionalPanel(
-        "input.tabs == 'tab1' || input.tabs =='tab2'",
+        "input.tabs == 'tab1' || input.tabs =='tab2' || input.tabs='tab3'",
         uiOutput("gene_selector"),
         type = 2,
         color.background = "#222d32"
       ),
       conditionalPanel(
-        "input.tabs =='tab2'|| input.tabs =='tab1'",
+        "input.tabs =='tab2'|| input.tabs =='tab1' || input.tabs=tab3",
         uiOutput("cell_type_selector"),
         type = 2,
         color.background = "#222d32"
@@ -62,7 +62,7 @@ shinyUI(tagList(
       fluidRow(column(10, htmlOutput("help")), column(
         2,
         conditionalPanel(
-          condition = "input.tabs == 'tab1'||input.tabs == 'tab2'",
+          condition = "input.tabs == 'tab1'||input.tabs == 'tab2' || input.tabs='tab3'",
           downloadButton(label = "Download plots",
                          # class = 'btn-primary',
                          outputId = "download_plots_button")
@@ -103,6 +103,7 @@ shinyUI(tagList(
         tabItem(tabName = "tab3",
                 fluidRow(box(
                   collapsible = TRUE,
+                  spinner(plotOutput("tab3_splinePlot", height = "600px")),
                   width = 12
                 ))),
         tabItem(tabName = "tab4",
