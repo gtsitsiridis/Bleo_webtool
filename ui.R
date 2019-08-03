@@ -18,7 +18,7 @@ shinyUI(tagList(
           ".main-header .logo {font-size:17px; text-align:left}") ## change to left alignment
       )
     ),
-    dashboardSidebar(width = 280,
+    dashboardSidebar(width = 310,
                      ## Makes it white / loading like
                      # div(
                      #   id = "loading-content1",class="loading-content",
@@ -27,12 +27,12 @@ shinyUI(tagList(
                      sidebarMenu(
                        id = "tabs",
                        
-                       menuItem("Lung Cell Type Signatures", tabName = "tab1_whole_celltype"),
-                       menuItem("Lung Time Course Differential Expression", tabName = "tab2_george_whole_kinetics"),
-                       menuItem("Lung Gene Kinetics_ALTERNATIVE", tabName = "tab2_whole_kinetics"),
-                       menuItem("Lung Cell-Cell Communication", tabName = "tab3_ccn"),
+                       menuItem("Whole Lung Cell Type Signatures", tabName = "tab1_whole_celltype"),
+                       menuItem("Whole Lung Time Course Differential Expression", tabName = "tab2_george_whole_kinetics"),
+                       # menuItem("Whole Lung Gene Kinetics_ALTERNATIVE", tabName = "tab2_whole_kinetics"),
+                       menuItem("Whole Lung Cell-Cell Communication", tabName = "tab3_ccn"),
                        menuItem("Lung Epithelium Cell Type Signatures", tabName = "tab4_epi_celltype"),
-                       menuItem("Lung Epithelium Gene Kinetics", tabName = "tab5_epi_kinetics"),
+                       # menuItem("Lung Epithelium Gene Kinetics", tabName = "tab5_epi_kinetics"),
                        menuItem("Lung Epithelium Convergence", tabName = "tab6_convergence"),
                        menuItem("Lung Epithelium ADI to AT1", tabName = "tab7_AT1traj")
                      ),

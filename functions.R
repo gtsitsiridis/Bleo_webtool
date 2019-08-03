@@ -186,7 +186,7 @@ getMarkersTable <- function(cell_type = "Alveolar macrophages", resolution = F) 
     dt <- dt[dt$cell_type == cell_type, ]
   }
   else{
-    dt <- markers_table[markers_table$cell_type == cell_type, ]
+    dt <- markers_table[markers_table$louvain_cluster== cell_type, ]
   }
   dt <- dt[, c("gene", "avg_logFC", "p_val","p_val_adj")]
   dt$avg_logFC <- round(dt$avg_logFC, 3)

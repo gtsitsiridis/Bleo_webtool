@@ -96,7 +96,7 @@ shinyServer(function(input, output, session){
   
   ### Define gene and cell type selectors
   output$cell_type_selector <- renderUI({
-    selectInput("cell_type", "Query cell type:", select_cell_type(metafile, column = "cell_type"), selected = "Macrophages")
+    selectInput("cell_type", "Query cell type:", select_cell_type(metafile, column = "louvain_cluster"), selected = "Macrophages")
   })
   output$gene_selector <- renderUI({
     selectInput("gene", "Query gene:", genes, selected = "Arg1")
@@ -379,9 +379,8 @@ shinyServer(function(input, output, session){
   #deal with selection from marker's table
   observeEvent(input$tab1_markers_table_rows_selected, {
     row_selected <- input$tab1_markers_table_rows_selected
-    
     isolate(cell_type <- values$cell_type)
-    dt <- markers_table[markers_table$cell_type == cell_type,]
+    dt <- markers_table[markers_table$louvain_cluster == cell_type,]
     
     new_gene_name <- dt[row_selected, "gene"]
     values$gene <- new_gene_name
@@ -397,6 +396,8 @@ shinyServer(function(input, output, session){
     new_gene_name <- dt[row_selected, "gene"]
     values$epi_gene <- new_gene_name
   })
+  
+  
   
   #deal with selection from Receptor Ligand table
   observeEvent(input$tab3_ccn_table_rows_selected, {

@@ -15,31 +15,54 @@ library(dplyr)
 library(gridExtra)
 library(grid)
 
-load("ADI_AT1_trajectory.RData")
-load("Convergence_trajectory.RData")
-css_file = "www/style.css"
-source("functions.R")
-
-## Whole Lung Files
-filename = "WholeLung_data.h5" 
-metafile <- read.delim("WholeLung_metadata.txt", sep = "\t", header = T, stringsAsFactors = F)
-genes <- read.delim("WholeLung_genes.txt", stringsAsFactors = F)[, 1]
-markers_table <- data.frame(read_excel("S1_Bleo_AllMarkers_annotated.xlsx"))
-
-## High Resolution Epithel Files
-epi_filename = "Epi_highres_data.h5"
-epi_metafile <- read.delim("HighresEpi_meta.txt", sep = "\t", header = T, stringsAsFactors = F)
-epi_genes <- read.delim("HighresEpi_genes.txt", stringsAsFactors = F)[, 1]
-epi_markers_table <- data.frame(read_excel("AllMarkers_Epi_inOne.xlsx",
-                                           col_types = c("text", "numeric", "numeric", "numeric", "text", "text")))
-spline_expr <- read.delim("Table_S2_adjpval_025.txt", stringsAsFactors = F)
-
-## Table from Spline fits for Cell-Cell Communication
-rec_lig <- read.delim(file = "RecLig_merged_withSpline_adapted.txt", sep = "\t", stringsAsFactors = F)
-
 checkFile <- function(f) {
   if(!file.exists(f)){
     stop(paste0("could not find ", f, "!"))
   }
   print(paste("File :", f))
 }
+
+css_file = "www/style.css"
+source("functions.R")
+
+adi_at1_path <- "data/ADI_AT1_trajectory.RData"
+checkFile(adi_at1_path)
+load(adi_at1_path)
+convergence_path = "data/Convergence_trajectory.RData"
+checkFile(convergence_path)
+load(convergence_path)
+
+## Whole Lung Files
+filename = "data/WholeLung_data.h5" 
+checkFile(filename)
+metafile_path = "data/WholeLung_metadata.txt"
+checkFile(metafile_path)
+metafile <- read.delim(metafile_path, sep = "\t", header = T, stringsAsFactors = F)
+genes_path <- "data/WholeLung_genes.txt"
+checkFile(genes_path)
+genes <- read.delim(genes_path, stringsAsFactors = F)[, 1]
+markers_table_path <- "data/S1_Bleo_AllMarkers_annotated.xlsx"
+checkFile(markers_table_path)
+markers_table <- data.frame(read_excel(markers_table_path))
+
+## High Resolution Epithel Files
+epi_filename = "data/Epi_highres_data.h5"
+checkFile(epi_filename)
+epi_metafile_path <- "data/HighresEpi_meta.txt"
+checkFile(epi_metafile_path)
+epi_metafile <- read.delim(epi_metafile_path, sep = "\t", header = T, stringsAsFactors = F)
+epi_genes_path <- "data/HighresEpi_genes.txt"
+checkFile(epi_genes_path)
+epi_genes <- read.delim(epi_genes_path, stringsAsFactors = F)[, 1]
+epi_markers_table_path <- "data/AllMarkers_Epi_inOne.xlsx"
+checkFile(epi_markers_table_path)
+epi_markers_table <- data.frame(read_excel(epi_markers_table_path,
+                                           col_types = c("text", "numeric", "numeric", "numeric", "text", "text")))
+spline_expr_path <- "data/Table_S2_adjpval_025.txt"
+checkFile(spline_expr_path)
+spline_expr <- read.delim(spline_expr_path, stringsAsFactors = F)
+
+## Table from Spline fits for Cell-Cell Communication
+rec_lig_path <- "data/RecLig_merged_withSpline_adapted.txt"
+checkFile(rec_lig_path)
+rec_lig <- read.delim(file = rec_lig_path, sep = "\t", stringsAsFactors = F)
