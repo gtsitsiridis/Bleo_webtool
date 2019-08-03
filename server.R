@@ -6,7 +6,11 @@ shinyServer(function(input, output, session){
   check_save <- function(plot) {
     # Check if exists
     if (class(plot)[1] == "try-error") {
-      plot <- emptyPlot()
+      type <- "general"
+      if(class(plot)[3]=="ccn_spline_plot"){
+        type <- "cc"
+      }
+      plot <- emptyPlot(type=type)
     } else{
       cl <- class(plot)[3]
       plots[[cl]] <- plot
@@ -247,9 +251,9 @@ shinyServer(function(input, output, session){
     lig_ct = values$ccn_lig_ct
     rec = values$ccn_rec
     lig = values$ccn_lig
-    if (is.null(rec) | is.null(rec_ct)) {
-      return()
-    }
+    # if (is.null(rec) | is.null(rec_ct)) {
+    #   return()
+    # }
     withProgress(session = session, value = 0, {
       setProgress(message = "Calculation in progress")
       p <- try(plot_RecLig_expression(rec = rec, lig = lig, rec_ct = rec_ct, lig_ct = lig_ct), silent = T)

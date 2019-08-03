@@ -7,8 +7,12 @@ spinner <- function(ui_element) {
 }
 
 
-emptyPlot <- function() {
-  df <- data.frame(x = 5, y = 5, text = "not enough data")
+emptyPlot <- function(type="general") {
+  txt <- "not enough data"
+  if(type == "cc"){
+    txt <- "please click on row in table to select receptor-ligand pair" 
+  }
+  df <- data.frame(x = 5, y = 5, text = txt)
   p <- ggplot(df, aes(x, y, label = text)) +
     geom_point(col = "white") + xlim(0, 10) + ylim(0, 10) + geom_text() + theme_bw() +
     theme(
