@@ -301,7 +301,7 @@ adi_at1_traj_single_gene <- function(gene_name = 'Krt8'){
   melted <- melt(data = aframe, id.vars = "t", measure.vars = "gene")
   
   ggplot(melted, aes(y = value, x = t, group = variable, color = variable)) + geom_smooth(method = "loess") +
-    ylab(paste(gene_name, "expression")) + xlab("Pseudotime") + ggtitle("ADI -> AT1 trajectory") + theme(legend.position="none")
+    ylab(paste(gene_name, "expression")) + xlab("Pseudotime") + ggtitle("Krt8+ progenitors -> AT1 trajectory") + theme(legend.position="none")
 }
 
 adi_at1_feature_plot <- function(gene_name = "Krt8"){
