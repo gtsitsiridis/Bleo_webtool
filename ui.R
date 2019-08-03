@@ -144,9 +144,9 @@ shinyUI(tagList(
                   spinner(plotOutput("tab2_whole_kin", height = "500px", width = "1100px"))
                 )),
         tabItem(tabName = "tab3_ccn",
-                mainPanel(
-                  spinner(DT::dataTableOutput("tab3_ccn_table", height = "400px", width = "1100px")),
-                  spinner(plotOutput("tab3_ccn_splines", height = "500px", width = "1100px"))
+                fluidRow(box(
+                  spinner(DT::dataTableOutput("tab3_ccn_table", height = "400px")), width=12)),
+                fluidRow(box(spinner(plotOutput("tab3_ccn_splines", height = "500px", width = "1100px")), width = 12)
                 )),
         
         ## Highres Epithelium Tab
@@ -168,26 +168,25 @@ shinyUI(tagList(
                   spinner(plotOutput("tab5_epi_kin", height = "500px", width = "1100px"))
                 )),
         tabItem(tabName = "tab6_convergence",
-                box(
+                fluidRow(box(
                   spinner(plotOutput("tab6_conv", height = "500px", width = "1100px")),
-                  width="8"
-                ),
-                box(
-                  spinner(tableOutput("conv_annot_table")),
-                  width = 4,
-                  height = "500px"
-                )
+                  width=12
+                )),
+                fluidRow(box(
+                  spinner(DT::dataTableOutput("conv_annot_table", height = "500px")),
+                  width = 12
+                ))
                 ),
         tabItem(tabName = "tab7_AT1traj",
-                box(
+               fluidRow( box(
                   spinner(plotOutput("tab7_traj", height = "500px", width = "1100px")),
-                  width = 8
-                ),
-                box(
-                  spinner(tableOutput("traj_annot_table")),
+                  width = 12
+                )),
+                fluidRow(tabBox(
+                  spinner(DT::dataTableOutput("traj_annot_table", height = "500px")),
                   height = "500px",
-                  width = 4
-                ))
+                  width = 12
+                )))
         
       ))
   ))

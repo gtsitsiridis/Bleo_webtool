@@ -380,9 +380,37 @@ shinyServer(function(input, output, session){
     })
   })
   
-  output$conv_annot_table <- renderTable(convergence_annot)
-  output$traj_annot_table <- renderTable(adi_at1_annot)
+   output$conv_annot_table  <- DT::renderDataTable({
+    cell_type <- values$cell_type
+    if (is.null(cell_type)) {
+      return()
+    }
+    dt <- convergence_annot
+    DT::datatable(dt, extensions = 'Buttons', options = list(pageLength = 25, scrollX = TRUE, scrollY = "400px",
+                                                             searchHighlight = T, dom = '<"top"Bf>rt<"bottom"lip><"clear">',
+                                                             buttons = list('print', list(extend =  "csv", title = "file"),
+                                                                            list(extend =  "pdf", title = "file")),
+                                                             columnDefs = list(list(className = 'dt-center', targets = "_all"))),
+    rownames = FALSE, selection = list(mode = 'single', target = 'row')
+    )
+  })
   
+ 
+  output$traj_annot_table <- DT::renderDataTable({
+    cell_type <- values$cell_type
+    if (is.null(cell_type)) {
+      return()
+    }
+    dt <- adi_at1_annot
+    DT::datatable(dt, extensions = 'Buttons', options = list(pageLength = 25, scrollX = TRUE, scrollY = "400px",
+                                                             searchHighlight = T, dom = '<"top"Bf>rt<"bottom"lip><"clear">',
+                                                             buttons = list('print', list(extend =  "csv", title = "file"),
+                                                                            list(extend =  "pdf", title = "file")),
+                                                             columnDefs = list(list(className = 'dt-center', targets = "_all"))),
+    rownames = FALSE, selection = list(mode = 'single', target = 'row')
+    )
+  })
+     
   ## Extras
   #deal with selection from marker's table
   observeEvent(input$tab1_markers_table_rows_selected, {
@@ -432,6 +460,25 @@ shinyServer(function(input, output, session){
     values$epi_gene <- new_gene_name
   })
   
+  observeEvent(input$traj_annot_table_rows_selected, {
+    row_selected <- input$traj_annot_table_rows_selected
+
+    dt <- adi_at1_annot
+    
+    new_gene_name <- dt[row_selected, "Gene"]
+    values$epi_gene <- new_gene_name
+  })
+ 
+  observeEvent(input$conv_annot_table_rows_selected, {
+    row_selected <- input$conv_annot_table_rows_selected
+
+    dt <- convergence_annot
+    
+    new_gene_name <- dt[row_selected, "Gene"]
+    values$epi_gene <- new_gene_name
+  }) 
+  
+   
   # Download plots
   output$download_plots_button <-
     downloadHandler(
