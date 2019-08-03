@@ -38,7 +38,7 @@ select_cell_type <- function(meta, column = "cell_type", type = F){
   }
   else{
     ct <- unique(meta[meta$type == type, "cell_type"])
-    return(ct)
+    return(ct[order(ct)])
   }
 }
 
