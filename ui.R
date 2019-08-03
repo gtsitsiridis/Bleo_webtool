@@ -67,20 +67,20 @@ shinyUI(tagList(
                        uiOutput("ccn_lig_selector")),
                      
                      conditionalPanel(
-                       "input.tabs == 'tab4_epi_celltype' | input.tabs == 'tab5_epi_kinetics'",
+                       "input.tabs == 'tab4_epi_celltype' || input.tabs == 'tab5_epi_kinetics'",
                        uiOutput("epi_cell_type_selector")),
                      conditionalPanel(
-                       paste0("input.tabs == 'tab4_epi_celltype' | input.tabs == 'tab5_epi_kinetics' ",
-                         "| input.tabs == 'tab6_convergence' | input.tabs == 'tab7_AT1traj'"),
+                       paste0("input.tabs == 'tab4_epi_celltype' || input.tabs == 'tab5_epi_kinetics' ",
+                         "|| input.tabs == 'tab6_convergence' || input.tabs == 'tab7_AT1traj'"),
                        uiOutput("epi_gene_selector"),
                        type = 2, color.background = "#222d32"),
                      
                      conditionalPanel(
-                       "input.tabs == 'tab4_epi_celltype' | input.tabs == 'tab5_epi_kinetics'",
+                       "input.tabs == 'tab4_epi_celltype' || input.tabs == 'tab5_epi_kinetics'",
                        uiOutput("epi_res_selector")),
                      
                      conditionalPanel(
-                       "input.tabs == 'tab2_whole_kinetics' | input.tabs == 'tab5_epi_kinetics'",
+                       "input.tabs == 'tab2_whole_kinetics' || input.tabs == 'tab5_epi_kinetics'",
                        uiOutput("smooth_selector"))
                      #conditionalPanel(
                      # "input.tabs == 'tab2_whole_kinetics' | input.tabs == 'tab5_epi_kinetics'",
