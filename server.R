@@ -376,6 +376,9 @@ shinyServer(function(input, output, session){
     })
   })
   
+  output$conv_annot_table <- renderTable(convergence_annot)
+  output$traj_annot_table <- renderTable(adi_at1_annot)
+  
   ## Extras
   #deal with selection from marker's table
   observeEvent(input$tab1_markers_table_rows_selected, {

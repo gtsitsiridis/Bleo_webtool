@@ -29,9 +29,11 @@ source("functions.R")
 adi_at1_path <- "data/ADI_AT1_trajectory.RData"
 checkFile(adi_at1_path)
 load(adi_at1_path)
+colnames(adi_at1_annot) <- c("Annotation", "Meaning")
 convergence_path = "data/Convergence_trajectory.RData"
 checkFile(convergence_path)
 load(convergence_path)
+colnames(convergence_annot) <- c("Annotation", "Meaning")
 
 ## Whole Lung Files
 filename = "data/WholeLung_data.h5" 

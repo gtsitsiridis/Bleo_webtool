@@ -168,12 +168,25 @@ shinyUI(tagList(
                   spinner(plotOutput("tab5_epi_kin", height = "500px", width = "1100px"))
                 )),
         tabItem(tabName = "tab6_convergence",
-                mainPanel(
-                  spinner(plotOutput("tab6_conv", height = "500px", width = "1100px"))
-                )),
+                box(
+                  spinner(plotOutput("tab6_conv", height = "500px", width = "1100px")),
+                  width="8"
+                ),
+                box(
+                  spinner(tableOutput("conv_annot_table")),
+                  width = 4,
+                  height = "500px"
+                )
+                ),
         tabItem(tabName = "tab7_AT1traj",
-                mainPanel(
-                  spinner(plotOutput("tab7_traj", height = "500px", width = "1100px"))
+                box(
+                  spinner(plotOutput("tab7_traj", height = "500px", width = "1100px")),
+                  width = 8
+                ),
+                box(
+                  spinner(tableOutput("traj_annot_table")),
+                  height = "500px",
+                  width = 4
                 ))
         
       ))
