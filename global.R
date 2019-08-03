@@ -47,10 +47,6 @@ convergence_annot_path <- "data/convergence_annot.RDS"
 checkFile(convergence_annot_path)
 convergence_annot <- readRDS(convergence_annot_path)
 
-convergence_path = "data/v01/Convergence_trajectory.RData"
-checkFile(convergence_path)
-load(convergence_path)
-
 ## Whole Lung Files
 filename = "data/WholeLung_data.h5" 
 checkFile(filename)
