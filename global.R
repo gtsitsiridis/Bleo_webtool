@@ -14,10 +14,7 @@ library(tidyr)
 library(dplyr)
 library(gridExtra)
 library(grid)
-<<<<<<< Updated upstream
-=======
 library(viridis)
->>>>>>> Stashed changes
 
 load("ADI_AT1_trajectory.RData")
 load("Convergence_trajectory.RData")
@@ -38,10 +35,7 @@ epi_markers_table <- data.frame(read_excel("AllMarkers_Epi_inOne.xlsx",
                                            col_types = c("text", "numeric", "numeric", "numeric", "text", "text")))
 
 ## Whole Lung Spline Table
-<<<<<<< Updated upstream
-=======
 load("WholeLung_spline.RData")
->>>>>>> Stashed changes
 spline_expr <- read.delim("Table_S2_adjpval_025.txt", stringsAsFactors = F)
 
 ## Table from Spline fits for Cell-Cell Communication
