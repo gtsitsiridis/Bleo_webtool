@@ -40,22 +40,20 @@ select_cell_type <- function(meta, column = "cell_type", type = F){
 
 genUMAPplot <- function(h5, meta, gene_name = 'Arg1') {
   gene <- h5read(h5, gene_name)
+  gene <- (gene - min(gene))/(max(gene) - min(gene))
   H5close()
   dt <- cbind(meta[, c("UMAP1", "UMAP2")], expression = gene)
-  high <- "darkblue"
-  if (all(gene == 0)) {
-    high = "grey"
-  }
-  ggplot(dt) + geom_point(aes(UMAP1, UMAP2, col = gene), size = 0.5, alpha = .9) +
+  sc <- scale_colour_gradientn(colours = magma(20, alpha = 0.5, direction = -1), limits= range(gene))
+  ggplot(dt) + geom_point(aes(UMAP1, UMAP2, col = gene), size = 0.3, alpha = .5) +
     guides(col = F) +
-    ggtitle(gene_name) + scale_color_continuous(low = "grey", high = high)
+    ggtitle(gene_name) + sc
 }
 
 ## DotPlot (taken and adapted from Aging)
 dotPlot <- function (h5, meta, gene_name = "Scgb1a1") {
   # Defaults
   cols.use = c("lightgrey", "blue")
-  plot.legend = FALSE   
+  plot.legend = FALSE
   do.return = FALSE
   x.lab.rot = FALSE
   
@@ -77,8 +75,8 @@ dotPlot <- function (h5, meta, gene_name = "Scgb1a1") {
   genExp <- h5read(h5, gene_name)
   data.to.plot <- data.table(genExp)
   colnames(x = data.to.plot) <- "expression"
-  data.to.plot$id <- meta$cell_type
-  
+  data.to.plot$id <- meta$louvain_cluster
+
   # filtering step: is there a cluster that has at least 10 cells. (5 no?)
   if(data.to.plot[, sum(expression > 0), by = id][, sum(V1 >= 5) == 0])
     return(emptyPlot())
@@ -87,7 +85,6 @@ dotPlot <- function (h5, meta, gene_name = "Scgb1a1") {
   setnames(data.to.plot, "expression", gene_name)
   data.to.plot <-
     data.to.plot %>% gather(key = genes.plot, value = expression, -c(id))
-  
   data.to.plot <- data.to.plot %>% group_by(id, genes.plot) %>%
     dplyr::summarize(avg.exp = mean(expm1(x = expression)),
                      pct.exp = PercentAbove(x = expression,  threshold = 0))
@@ -100,15 +97,15 @@ dotPlot <- function (h5, meta, gene_name = "Scgb1a1") {
     ))
   data.to.plot$pct.exp[data.to.plot$pct.exp < 0] <- NA
   data.to.plot <- as.data.frame(data.to.plot)
-  
   colnames(data.to.plot) <- c("CellType", "Gene", "AvgExpr", "PctExpressed", "AvgRelExpr")
-  
+  bad <- which(data.to.plot$CellType == "unassigned")
+  if(length(bad) > 0) data.to.plot <- data.to.plot[-bad,]
   ## Exclude NA cell type (there are none in highres Epi)
   if(sum(is.na(data.to.plot$CellType)) > 0){
     data.to.plot <- data.to.plot[-which(is.na(data.to.plot$CellType)),]
   }
-  data.to.plot$CellType <- factor(data.to.plot$CellType)
-  
+  data.to.plot$CellType <- factor(data.to.plot$CellType, levels = rev(sort(as.character(data.to.plot$CellType))))
+
   p <-
     ggplot(data = data.to.plot, mapping = aes(x = Gene, y = CellType)) +
     geom_point(mapping = aes(size = PctExpressed, color = AvgRelExpr)) +
@@ -124,7 +121,6 @@ dotPlot <- function (h5, meta, gene_name = "Scgb1a1") {
     )
   p
 }
-
 ## Plot mean expression on each measured day (sample needs to have min_cells 
 ## cells expressing the gene to be considered)
 genLinePlot <- function(h5, gene, cell_type, meta, type = "meta_cell_type", min_cells = 5, smooth = F, epi = F){
@@ -199,23 +195,21 @@ getMarkersTable <- function(cell_type = "Alveolar macrophages", resolution = F) 
 ## As I get lots of Errors while reading in that table, extracted genes with pval < 0.25
 ## In Bleo/short_scripts/check_nr_significant_genes.R
 plotSingleGene <- function(celltype = 'fibroblasts', gene = "Tnc"){
-  tmp = spline_expr[spline_expr$cell.type == celltype,]
-  stats <- tmp[,1:3]
-  prop <- as.numeric(tmp[which(stats$gene == gene), -c(1:3)])
-  nom <- colnames(tmp)[-(1:3)]
-
+  tmp <- wholeLung_spline[[celltype]]
+  stats <- tmp[,1:2]
+  prop <- as.numeric(tmp[gene, -c(1:2)])
+  nom <- colnames(tmp)[-(1:2)]
   day <- unlist(lapply(nom, function(x) strsplit(x, '_', fixed = T)[[1]][3]))
   day[grep('PBS', nom)] <- 'd0'
   day <- gsub('d', '', day)
   day <- as.numeric(day)
-
   aframe <- data.frame(prop, day)    
 
-  aframe <- na.omit(aframe)          ## introduced NAs when merging all tables
+  nom <- paste(celltype, "(Spline regression P", signif(stats[gene, 1],2), ")")
   
   p <- ggplot(aframe, aes(y = prop, x = day)) + 
     geom_point(color = "violet") + geom_smooth(method = "loess") +
-    ylab(paste(gene, "expression")) + xlab("Days") + ggtitle(celltype)
+    ylab(paste("Relative", gene, "expression")) + xlab("Days") + ggtitle(nom)
   p
 }
 
@@ -280,25 +274,25 @@ convergence_traj_single_gene <- function(gene_name = 'Krt8'){
 
 convergence_feature_plot <- function(gene_name = "Krt8"){
   gene <- h5read(epi_filename, gene_name)
-  gene <- gene[match(rownames(convergence), epi_metafile$X)]  
+  gene <- gene[match(rownames(convergence), epi_metafile$X)]
+  gene <- (gene - min(gene))/(max(gene) - min(gene))
+  H5close()
+  
   aframe <- data.frame(convergence, gene)
-  high <- "darkblue"
-  if (all(gene == 0)) {
-    high = "grey"
-  }
+  
+  sc <- scale_colour_gradientn(colours = magma(20, alpha = 0.5, direction = -1), limits= range(gene))
   
   dt <- aframe
   
-  ggplot(dt) + geom_point(aes(DC1, DC2, col = gene), size = 1, alpha = .9) +
+  ggplot(dt) + geom_point(aes(DC1, DC2, col = gene), size = 0.5, alpha = .9) +
     guides(col = F) +
-    ggtitle(gene_name) + scale_color_continuous(low = "grey", high = high)
+    ggtitle(gene_name) + sc#scale_color_continuous(low = "grey", high = high) 
 }
 
 ## Tab 7 Trajectory ADI to AT1
 adi_at1_traj_single_gene <- function(gene_name = 'Krt8'){
   gene <- h5read(epi_filename, gene_name)
   gene <- gene[match(rownames(adi_at1), epi_metafile$X)]
-  
   aframe <- data.frame(adi_at1, gene)
   melted <- melt(data = aframe, id.vars = "t", measure.vars = "gene")
   
@@ -309,13 +303,19 @@ adi_at1_traj_single_gene <- function(gene_name = 'Krt8'){
 adi_at1_feature_plot <- function(gene_name = "Krt8"){
   gene <- h5read(epi_filename, gene_name)
   gene <- gene[match(rownames(adi_at1), epi_metafile$X)]
+  gene <- (gene - min(gene))/(max(gene) - min(gene))
+  H5close()
+  
   aframe <- data.frame(adi_at1, gene)
-  high <- "darkblue"
-  if (all(gene == 0)) {
-    high = "grey"
-  }
+
+  sc <- scale_colour_gradientn(colours = magma(20, alpha = 0.5, direction = -1), limits= range(gene))
+  
   dt <- aframe
   ggplot(dt) + geom_point(aes(umap1, umap2, col = gene), size = 2, alpha = .9) +
     guides(col = F) +
-    ggtitle(gene_name) + scale_color_continuous(low = "grey", high = high)
+    ggtitle(gene_name) + scale_color_continuous(low = "grey", high = high) + sc
 }
+
+
+
+

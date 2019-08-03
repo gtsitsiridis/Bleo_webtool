@@ -124,11 +124,12 @@ shinyServer(function(input, output, session){
   })
   
   output$spline_cell_type_selector <- renderUI({
-    selectInput("spline_cell_type", "Query cell type:", select_cell_type(spline_expr, column = "cell.type"), selected = "alv_epithelium")
+    selectInput("spline_cell_type", "Query cell type:", names(wholeLung_spline), selected = "alv_epithelium")
   })
   output$spline_gene_selector <- renderUI({
     cell_type = values$spline_cell_type
-    selectInput("spline_gene", "Query gene:", select_spline_genes(cell_type), selected = "Krt8")
+    if(is.null(cell_type)) selectInput("spline_gene", "Query gene:", "Krt8", selected = "Krt8")
+    else selectInput("spline_gene", "Query gene:", rownames(wholeLung_spline[[cell_type]]), selected = "Krt8")
   })
   
   output$epi_gene_selector <- renderUI({
@@ -514,3 +515,7 @@ shinyServer(function(input, output, session){
 )
 
 #shinyApp(ui = ui, server = server)
+
+
+  
+  

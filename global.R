@@ -14,6 +14,7 @@ library(tidyr)
 library(dplyr)
 library(gridExtra)
 library(grid)
+library(viridis)
 
 checkFile <- function(f) {
   if(!file.exists(f)){
@@ -66,3 +67,8 @@ spline_expr <- read.delim(spline_expr_path, stringsAsFactors = F)
 rec_lig_path <- "data/RecLig_merged_withSpline_adapted.txt"
 checkFile(rec_lig_path)
 rec_lig <- read.delim(file = rec_lig_path, sep = "\t", stringsAsFactors = F)
+
+## Whole Lung Spline Table
+wholeLung_spline_path <- "data/WholeLung_spline.RData"
+checkFile(wholeLung_spline_path)
+load(wholeLung_spline_path)
