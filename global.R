@@ -3,7 +3,7 @@
 library(rhdf5)
 library(ggplot2)
 library(plyr)
-library(Seurat)
+#library(Seurat)
 library(readxl)
 library(shiny)
 library(shinyjs)
