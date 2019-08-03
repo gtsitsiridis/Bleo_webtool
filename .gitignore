@@ -1,10 +1,6 @@
-
 *.RData
 *.xlsx
 *.h5
 *.txt
-<<<<<<< HEAD
 .Rproj.user
-=======
 .Rhistory
->>>>>>> 0a59856166a5a92fa5d8326cb7bd355c7c598a9f

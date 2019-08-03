@@ -79,7 +79,7 @@ dotPlot <- function (h5, meta, gene_name = "Scgb1a1") {
   genExp <- h5read(h5, gene_name)
   data.to.plot <- data.table(genExp)
   colnames(x = data.to.plot) <- "expression"
-  data.to.plot$id <- meta$louvain_cluster
+  data.to.plot$id <- meta$cell_type
 
   # filtering step: is there a cluster that has at least 10 cells. (5 no?)
   if(data.to.plot[, sum(expression > 0), by = id][, sum(V1 >= 5) == 0])
