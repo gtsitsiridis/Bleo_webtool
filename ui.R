@@ -39,14 +39,18 @@ shinyUI(tagList(
                      
                      conditionalPanel(
                        "input.tabs == 'tab1_whole_celltype'",
-                       uiOutput("cell_type_selector")),
+     selectInput("cell_type", "Query cell type:", select_cell_type(metafile, column = "louvain_cluster"), selected = "Macrophages")),
+                      
+                       # uiOutput("cell_type_selector")),
                      
                      conditionalPanel(
                        "input.tabs == 'tab2_whole_kinetics'",
                        uiOutput("meta_cell_type_selector")),
                      conditionalPanel(
                        "input.tabs == 'tab1_whole_celltype' || input.tabs == 'tab2_whole_kinetics'",
-                       uiOutput("gene_selector")),
+                       selectInput("gene", "Query gene:", genes, selected = "Arg1")),
+                  
+                       # uiOutput("gene_selector")),
                      conditionalPanel(
                        "input.tabs == 'tab2_whole_kinetics'",
                        uiOutput("res_selector")),
@@ -98,25 +102,28 @@ shinyUI(tagList(
       fluidRow(column(10, htmlOutput("help")), column(
         2,
         conditionalPanel(
-          condition = paste("input.tabs == 'tab1_whole_celltype' || input.tabs == 'tab4_epi_celltype'",
+          condition = paste("input.tabs == 'tab1_whole_celltype' || input.tabs == 'tab2_whole_kinetics' || input.tabs=='tab2_george_whole_kinetics' || 
+                            input.tabs == 'tab5_epi_kinetics' || input.tabs == 'tab3_ccn'
+                            || input.tabs == 'tab4_epi_celltype'",
                             "|| input.tabs == 'tab6_convergence' || input.tabs == 'tab7_AT1traj'"),
           downloadButton(
             label = "Download Plots", outputId = "download_plots_button"
           )
-        ),
-        conditionalPanel(
-          condition = paste("input.tabs == 'tab2_whole_kinetics' || input.tabs == 'tab2_george_whole_kinetics'",
-                            "|| input.tabs == 'tab5_epi_kinetics'"),
-          downloadButton(
-            label = "Download Plot", outputId = "download_plots_single_button"
-          )
-        ),
-        conditionalPanel(
-          condition = "input.tabs == 'tab3_ccn'",
-          downloadButton(
-            label = "Download Plot", outputId = "download_ccn_plot_button"
-          )
         )
+        # ,
+        # conditionalPanel(
+        #   condition = paste("input.tabs == 'tab2_whole_kinetics' || input.tabs == 'tab2_george_whole_kinetics'",
+        #                     "|| input.tabs == 'tab5_epi_kinetics'"),
+        #   downloadButton(
+        #     label = "Download Plot", outputId = "download_plots_single_button"
+        #   )
+        # ),
+        # conditionalPanel(
+        #   condition = "input.tabs == 'tab3_ccn'",
+        #   downloadButton(
+        #     label = "Download Plot", outputId = "download_ccn_plot_button"
+        #   )
+        # )
       )),
       
       tabItems(

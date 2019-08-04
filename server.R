@@ -110,12 +110,12 @@ shinyServer(function(input, output, session){
   })
   
   ### Define gene and cell type selectors
-  output$cell_type_selector <- renderUI({
-    selectInput("cell_type", "Query cell type:", select_cell_type(metafile, column = "louvain_cluster"), selected = "Macrophages")
-  })
-  output$gene_selector <- renderUI({
-    selectInput("gene", "Query gene:", genes, selected = "Arg1")
-  })
+  # output$cell_type_selector <- renderUI({
+  #   selectInput("cell_type", "Query cell type:", select_cell_type(metafile, column = "louvain_cluster"), selected = "Macrophages")
+  # })
+  # output$gene_selector <- renderUI({
+  #   selectInput("gene", "Query gene:", genes, selected = "Arg1")
+  # })
   output$smooth_selector <- renderUI({
     checkboxInput("smooth", "smooth Plot", value = T)
   })
@@ -212,6 +212,8 @@ shinyServer(function(input, output, session){
     cell_type <- values$spline_cell_type
     withProgress(session = session, value = 0, {
       p <- try(plotSingleGene(celltype = cell_type, gene = gene), silent = T)
+      class(p)[3] <- "wholelung_george_kinplot"
+      p <- check_save(p)
       incProgress(0.2, detail = "Plotting...")
       p
     })
@@ -462,93 +464,139 @@ shinyServer(function(input, output, session){
     values$epi_gene <- new_gene_name
   }) 
   
-   
-  # Download plots
-  output$download_plots_button <-
-    downloadHandler(
-      filename = function() {
-        isolate(tab <- input$tabs)
-        gene <- ifelse(length(grep("whole", tab) == 0), values$gene, values$epi_gene)
-        file_name <- paste0(strsplit(tab, "_")[[1]][1], "_", gene, ".zip")
-        #paste0(gsub("\\s", "_", tab), "_plots.zip")
-      },
-      content = function(file) {
-        owd <- setwd(tempdir())
-        on.exit(setwd(owd))
-        
-        isolate(tab <- input$tabs)
-        if (tab == "tab1_whole_celltype") {
-          plot_names <- c("wholelung_umap", "wholelung_dotplot")
-          gene <- values$gene
-        } else if (tab == "tab4_epi_celltype") {
-          plot_names <- c("epi_umap", "epi_dotplot")
-          gene <- values$epi_gene
-        } else if (tab == "tab6_convergence") {
-          plot_names <- c("conv_diffmap", "conv_traj")
-          gene <- values$epi_gene
-        } else if (tab == "tab7_AT1traj") {
-          plot_names <- c("at1adi_diffmap", "at1adi_traj")
-          gene <- values$epi_gene
-        }
-        
-        files <- sapply(plot_names, function(x) {
-          p <- plots[[x]]
-          file_name <- paste0(x, "_", gene, ".pdf")
-          if (is.null(p)) {
-            return(NA)
+  #  
+  # # Download plots
+  # output$download_plots_button <-
+  #   downloadHandler(
+  #     filename = function() {
+  #       isolate(tab <- input$tabs)
+  #       gene <- ifelse(length(grep("whole", tab) == 0), values$gene, values$epi_gene)
+  #       file_name <- paste0(strsplit(tab, "_")[[1]][1], "_", gene, ".zip")
+  #       #paste0(gsub("\\s", "_", tab), "_plots.zip")
+  #     },
+  #     content = function(file) {
+  #       owd <- setwd(tempdir())
+  #       on.exit(setwd(owd))
+  #       
+  #       isolate(tab <- input$tabs)
+  #       if (tab == "tab1_whole_celltype") {
+  #         plot_names <- c("wholelung_umap", "wholelung_dotplot")
+  #         gene <- values$gene
+  #       } else if (tab == "tab4_epi_celltype") {
+  #         plot_names <- c("epi_umap", "epi_dotplot")
+  #         gene <- values$epi_gene
+  #       } else if (tab == "tab6_convergence") {
+  #         plot_names <- c("conv_diffmap", "conv_traj")
+  #         gene <- values$epi_gene
+  #       } else if (tab == "tab7_AT1traj") {
+  #         plot_names <- c("at1adi_diffmap", "at1adi_traj")
+  #         gene <- values$epi_gene
+  #       }
+  #       
+  #       files <- sapply(plot_names, function(x) {
+  #         p <- plots[[x]]
+  #         file_name <- paste0(x, "_", gene, ".pdf")
+  #         if (is.null(p)) {
+  #           return(NA)
+  #         }
+  #         ggsave(file = file_name, plot = p, dpi = 150)
+  #         return(file_name)
+  #       })
+  #       files <- files[!is.na(files)]
+  #       zip(file, files)
+  #     }
+  #   )
+  
+  observeEvent(input$tabs, {
+    req(input$tabs)
+    tab <- input$tabs
+    mode <- 0
+    if (tab == "tab1_whole_celltype") {
+      plot_names <- c("wholelung_umap", "wholelung_dotplot")
+      gene <- values$gene
+    } else if (tab == "tab4_epi_celltype") {
+      plot_names <- c("epi_umap", "epi_dotplot")
+      gene <- values$epi_gene
+    } else if (tab == "tab6_convergence") {
+      plot_names <- c("conv_diffmap", "conv_traj")
+      gene <- values$epi_gene
+    } else if (tab == "tab7_AT1traj") {
+      plot_names <- c("at1adi_diffmap", "at1adi_traj")
+      gene <- values$epi_gene
+    } else if (tab == "tab2_george_whole_kinetics") {
+      mode <- 1 
+      plot_name <- "wholelung_george_kinplot"
+    } else if (tab == "tab5_epi_kinetics") {
+      mode <- 1
+      plot_name <- "epi_kinplot"
+    } else {
+      return()
+    }
+    if (mode == 0){
+      output$download_plots_button <-
+        downloadHandler(
+          filename = function() {
+            gene <- ifelse(length(grep("whole", tab) == 0), values$gene, values$epi_gene)
+            file_name <- paste0(strsplit(tab, "_")[[1]][1], "_", gene, ".zip")
+          },
+          content = function(file) {
+            owd <- setwd(tempdir())
+            on.exit(setwd(owd))
+            files <- sapply(plot_names, function(x) {
+              p <- plots[[x]]
+              file_name <- paste0(x, "_", gene, ".pdf")
+              if (is.null(p)) {
+                return(NA)
+              }
+              ggsave(file = file_name, plot = p, dpi = 150)
+              return(file_name)
+            })
+            files <- files[!is.na(files)]
+            zip(file, files)
           }
-          ggsave(file = file_name, plot = p, dpi = 150)
-          return(file_name)
-        })
-        files <- files[!is.na(files)]
-        zip(file, files)
-      }
-    )
-  
-  output$download_plots_single_button <-
-    downloadHandler(
-      filename = function() {
-        isolate(tab <- input$tabs)
-        gene <- ifelse(length(grep("epi", tab) == 0), values$epi_gene, values$gene)
-        file_name <- paste0(strsplit(tab, "_")[[1]][1], "_", gene, ".pdf")
-      },
-      content = function(file) {
-        owd <- setwd(tempdir())
-        on.exit(setwd(owd))
-        
-        isolate(tab <- input$tabs)
-        if (tab == "tab2_whole_kinetics") {
-          plot_name <- "wholelung_kinplot"
-        } else if (tab == "tab5_epi_kinetics") {
-          plot_name <- "epi_kinplot"
-        }
-        p <- plots[[plot_name]]
-        if (is.null(p)) {
-          return(NA)
-        }
-        ggsave(file = file, plot = p, width = 9, height = 5, dpi = 150)
-      }
-    )
-  
-  output$download_ccn_plot_button <-
-    downloadHandler(
-      filename = function() {
-        rec_ct = values$ccn_rec_ct
-        lig_ct = values$ccn_lig_ct
-        rec = values$ccn_rec
-        lig = values$ccn_lig
-        file_name <- paste0(rec_ct, "_", rec, "_", lig_ct, "_", lig, ".pdf")
-      },
-      content = function(file) {
-        owd <- setwd(tempdir())
-        on.exit(setwd(owd))
-        p <- plots[["ccn_spline_plot"]]
-        if (is.null(p)) {
-          return(NA)
-        }
-        ggsave(file = file, plot = p, width = 9, height = 5, dpi = 150)
-      }
-    )
+        )
+    }else if (mode == 1){
+      output$download_plots_button <-
+        downloadHandler(
+          filename = function() {
+            gene <- ifelse(length(grep("epi", tab) == 0), values$epi_gene, values$gene)
+            file_name <- paste0(strsplit(tab, "_")[[1]][1], "_", gene, ".pdf")
+            file_name
+          },
+          content = function(file) {
+            owd <- setwd(tempdir())
+            on.exit(setwd(owd))
+            p <- plots[[plot_name]]
+            print(plot_name)
+            if (is.null(p)) {
+              print("test1")
+              return(NA)
+            }
+            ggsave(file = file, plot = p, width = 9, height = 5, dpi = 150)
+          }
+        )
+    } else if (mode==2){
+      output$download_ccn_plot_button <-
+        downloadHandler(
+          filename = function() {
+            rec_ct = values$ccn_rec_ct
+            lig_ct = values$ccn_lig_ct
+            rec = values$ccn_rec
+            lig = values$ccn_lig
+            file_name <- paste0(rec_ct, "_", rec, "_", lig_ct, "_", lig, ".pdf")
+          },
+          content = function(file) {
+            owd <- setwd(tempdir())
+            on.exit(setwd(owd))
+            p <- plots[["ccn_spline_plot"]]
+            if (is.null(p)) {
+              return(NA)
+            }
+            ggsave(file = file, plot = p, width = 9, height = 5, dpi = 150)
+          }
+        )
+    }
+  })
 }
 )
 

@@ -317,7 +317,7 @@ adi_at1_feature_plot <- function(gene_name = "Krt8"){
   dt <- aframe
   ggplot(dt) + geom_point(aes(umap1, umap2, col = gene), size = 2, alpha = .9) +
     guides(col = F) +
-    ggtitle(gene_name) + scale_color_continuous(low = "grey", high = high) + sc
+    ggtitle(gene_name) +  sc #+scale_color_continuous(low = "grey", high = high) 
 }
 
 
