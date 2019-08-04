@@ -14,7 +14,7 @@ emptyPlot <- function(type="general") {
   }
   df <- data.frame(x = 5, y = 5, text = txt)
   p <- ggplot(df, aes(x, y, label = text)) +
-    geom_point(col = "white") + xlim(0, 10) + ylim(0, 10) + geom_text() + theme_bw() +
+    geom_point(col = "white") + xlim(0, 10) + ylim(0, 10) + geom_text(fontface="bold") + theme_bw() +
     theme(
       axis.title.x = element_blank(),
       axis.text.x = element_blank(),

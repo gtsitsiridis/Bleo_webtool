@@ -20,10 +20,10 @@ shinyUI(tagList(
     ),
     dashboardSidebar(width = 310,
                      ## Makes it white / loading like
-                     # div(
-                     #   id = "loading-content1",class="loading-content",
-                     #   style="z-index:10;"
-                     # ),
+                     div(
+                       id = "loading-content1",class="loading-content",
+                       style="z-index:10;"
+                     ),
                      sidebarMenu(
                        id = "tabs",
                        
@@ -53,22 +53,26 @@ shinyUI(tagList(
                        # uiOutput("gene_selector")),
                      conditionalPanel(
                        "input.tabs == 'tab2_whole_kinetics'",
-                       uiOutput("res_selector")),
-                     
+                       radioButtons("res", "Resolution",  
+                                    choices = c("cell_type", "meta_cell_type"), selected = "meta_cell_type")), 
+                       # uiOutput("res_selector")),
                      
                      conditionalPanel(
                        "input.tabs == 'tab2_george_whole_kinetics'",
-                       uiOutput("spline_cell_type_selector")),
+                       selectInput("spline_cell_type", "Query cell type:", names(wholeLung_spline), selected = "alv_epithelium")),
+                       # uiOutput("spline_cell_type_selector")),
                      conditionalPanel(
                        "input.tabs == 'tab2_george_whole_kinetics'",
                        uiOutput("spline_gene_selector")),
                      
                      conditionalPanel(
                        "input.tabs == 'tab3_ccn'",
-                       uiOutput("ccn_rec_selector")),
+                       selectInput("ccn_rec_ct", "Query receptor:", select_cell_type(rec_lig, column = "metacelltype.rec"), selected = "Macrophages")),
+                       # uiOutput("ccn_rec_selector")),
                      conditionalPanel(
                        "input.tabs == 'tab3_ccn'",
-                       uiOutput("ccn_lig_selector")),
+                       selectInput("ccn_lig_ct", "Query ligand:", select_cell_type(rec_lig, column = "metacelltype.lig"), selected = "Fibroblasts")),
+                       # uiOutput("ccn_lig_selector")),
                      
                      conditionalPanel(
                        "input.tabs == 'tab4_epi_celltype' | input.tabs == 'tab5_epi_kinetics'",
@@ -76,29 +80,35 @@ shinyUI(tagList(
                      conditionalPanel(
                        paste0("input.tabs == 'tab4_epi_celltype' | input.tabs == 'tab5_epi_kinetics' ",
                          "| input.tabs == 'tab6_convergence' | input.tabs == 'tab7_AT1traj'"),
-                       uiOutput("epi_gene_selector"),
+                       selectInput("epi_gene", "Query gene:", epi_genes, selected = "Sftpc"),
+                       # uiOutput("epi_gene_selector"),
                        type = 2, color.background = "#222d32"),
                      
                      conditionalPanel(
                        "input.tabs == 'tab4_epi_celltype' | input.tabs == 'tab5_epi_kinetics'",
-                       uiOutput("epi_res_selector")),
+                       radioButtons("epi_res", "Resolution",  
+                                    choices = c("res_2", "cell_type_2", "cell_type_4"), selected = "cell_type_2")),
+                       # uiOutput("epi_res_selector")),
                      
                      conditionalPanel(
                        "input.tabs == 'tab2_whole_kinetics' | input.tabs == 'tab5_epi_kinetics'",
-                       uiOutput("smooth_selector"))
+                       checkboxInput("smooth", "smooth Plot", value = T))
+                       # uiOutput("smooth_selector"))
                      #conditionalPanel(
                      # "input.tabs == 'tab2_whole_kinetics' | input.tabs == 'tab5_epi_kinetics'",
-                     # uiOutput("min_cell_selector"))
+                    # sliderInput("min_cells", label = "Minimum cell number expressed per sample", 
+                      # min = 5, max = 20, value = 5))  
+                     # # uiOutput("min_cell_selector"))
     ),
     
     
     dashboardBody(
-      # div(
-      #   id = "loading-content2",class="loading-content",
-      #   h2("Loading..."), HTML("<img src='spinner.gif' style='padding-top:10px;padding-right:10px;' height='70'/>"
-      #   ),
-      #   style="z-index:10;"
-      # ),
+      div(
+        id = "loading-content2",class="loading-content",
+        HTML("<img src='spinner.gif' style='padding-top:10px;padding-right:10px;' height='500'/>"
+        ),
+        style="z-index:10;"
+      ),
       fluidRow(column(10, htmlOutput("help")), column(
         2,
         conditionalPanel(
@@ -110,20 +120,6 @@ shinyUI(tagList(
             label = "Download Plots", outputId = "download_plots_button"
           )
         )
-        # ,
-        # conditionalPanel(
-        #   condition = paste("input.tabs == 'tab2_whole_kinetics' || input.tabs == 'tab2_george_whole_kinetics'",
-        #                     "|| input.tabs == 'tab5_epi_kinetics'"),
-        #   downloadButton(
-        #     label = "Download Plot", outputId = "download_plots_single_button"
-        #   )
-        # ),
-        # conditionalPanel(
-        #   condition = "input.tabs == 'tab3_ccn'",
-        #   downloadButton(
-        #     label = "Download Plot", outputId = "download_ccn_plot_button"
-        #   )
-        # )
       )),
       
       tabItems(

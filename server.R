@@ -1,8 +1,43 @@
 ## My Version - Tidy
 ## Shiny Webtool - Server
 
-#server <-function(input, output, session){
+load_data <- function() {
+  Sys.sleep(2)
+  hide(id = "loading-content1",
+       anim = TRUE,
+       animType = "fade")
+  hide(id = "loading-content2",
+       anim = TRUE,
+       animType = "fade")
+}
+
+
 shinyServer(function(input, output, session){
+    ### Descriptions
+    help <- list()
+    
+    help[["tab1_whole_celltype"]] <-
+      HTML('<center><strong><p>To select a cell type-gene pair, use the respective sidebar drop-down menus. Alternatively you can also select a gene by clicking on a row from the DE table.</strong></p></center>')
+    help[["tab2_george_whole_kinetics"]] <-
+      HTML('<center><strong><p>To select a cell type-gene pair, use the respective sidebar drop-down menus.</strong></p></center>')
+    help[["tab3_ccn"]] <-
+      HTML('<center><strong><p>To select a receptor-ligand pair of cell types, use the respective sidebar drop-down menus. Then please click on a row in the table to select a receptor-ligand pair of genes.</strong></p></center>')
+    help[["tab4_epi_celltype"]] <-
+      HTML('<center><strong><p>To select a cell type-gene pair, use the respective sidebar drop-down menus. Alternatively you can also select a gene by clicking on a row from the DE table. You may also specify the resolution of the DE table by using the radio button on the sidebar.</strong></p></center>')
+    help[["tab6_convergence"]] <-
+      HTML('<center><strong><p>Please select a gene using the sidebar dropdown menu. Alternatively you can also select a gene by clicking on a row from the table.</strong></p></center>')
+    help[["tab7_AT1traj"]] <-
+      HTML('<center><strong><p>Please select a gene using the sidebar dropdown menu. Alternatively you can also select a gene by clicking on a row from the table.</strong></p></center>')
+    
+    output$description <-
+      renderUI(HTML("<center><h1></h1></center>"))
+    
+    output$help <- renderUI({
+      tab <- input$tabs
+      help[[tab]]
+    })
+  
+  
   check_save <- function(plot) {
     # Check if exists
     if (class(plot)[1] == "try-error") {
@@ -110,58 +145,28 @@ shinyServer(function(input, output, session){
   })
   
   ### Define gene and cell type selectors
-  # output$cell_type_selector <- renderUI({
-  #   selectInput("cell_type", "Query cell type:", select_cell_type(metafile, column = "louvain_cluster"), selected = "Macrophages")
-  # })
-  # output$gene_selector <- renderUI({
-  #   selectInput("gene", "Query gene:", genes, selected = "Arg1")
-  # })
-  output$smooth_selector <- renderUI({
-    checkboxInput("smooth", "smooth Plot", value = T)
-  })
-  output$min_cell_selector <- renderUI({
-    sliderInput("min_cells", label = "Minimum cell number expressed per sample", 
-                min = 5, max = 20, value = 5)
-  })
   output$meta_cell_type_selector <- renderUI({
+    req(values$res)
     res = values$res
     selectInput("meta_cell_type", "Query cell type:", select_cell_type(metafile, column = res), selected = "Macrophages")
   })
-  output$res_selector <- renderUI({
-    radioButtons("res", "Resolution",  
-                 choices = c("cell_type", "meta_cell_type"), selected = "meta_cell_type")
-  })
-  output$ccn_rec_selector <- renderUI({
-    selectInput("ccn_rec_ct", "Query receptor:", select_cell_type(rec_lig, column = "metacelltype.rec"), selected = "Macrophages")
-  })
-  output$ccn_lig_selector <- renderUI({
-    selectInput("ccn_lig_ct", "Query ligand:", select_cell_type(rec_lig, column = "metacelltype.lig"), selected = "Fibroblasts")
-  })
-  
-  output$spline_cell_type_selector <- renderUI({
-    selectInput("spline_cell_type", "Query cell type:", names(wholeLung_spline), selected = "alv_epithelium")
-  })
+
   output$spline_gene_selector <- renderUI({
+    req(values$spline_cell_type)
     cell_type = values$spline_cell_type
     if(is.null(cell_type)) selectInput("spline_gene", "Query gene:", "Krt8", selected = "Krt8")
     else selectInput("spline_gene", "Query gene:", rownames(wholeLung_spline[[cell_type]]), selected = "Krt8")
   })
-  
-  output$epi_gene_selector <- renderUI({
-    selectInput("epi_gene", "Query gene:", epi_genes, selected = "Sftpc")
-  })
-  output$epi_res_selector <- renderUI({
-    radioButtons("epi_res", "Resolution",  
-                 choices = c("res_2", "cell_type_2", "cell_type_4"), selected = "cell_type_2")
-  })
+
   output$epi_cell_type_selector <- renderUI({
+    req(values$epi_res)
     if(is.null(values$epi_res))
       return()
     #res = "cell_type_2"
     res = values$epi_res
     selectInput("epi_cell_type", "Query cell type:", select_cell_type(epi_markers_table, type = res), selected = "AT2 cells")
   })
-  
+
   
   ## Code for Figures
   output$tab1_celltype_panel <- renderPlot({
@@ -463,50 +468,7 @@ shinyServer(function(input, output, session){
     new_gene_name <- dt[row_selected, "Gene"]
     values$epi_gene <- new_gene_name
   }) 
-  
-  #  
-  # # Download plots
-  # output$download_plots_button <-
-  #   downloadHandler(
-  #     filename = function() {
-  #       isolate(tab <- input$tabs)
-  #       gene <- ifelse(length(grep("whole", tab) == 0), values$gene, values$epi_gene)
-  #       file_name <- paste0(strsplit(tab, "_")[[1]][1], "_", gene, ".zip")
-  #       #paste0(gsub("\\s", "_", tab), "_plots.zip")
-  #     },
-  #     content = function(file) {
-  #       owd <- setwd(tempdir())
-  #       on.exit(setwd(owd))
-  #       
-  #       isolate(tab <- input$tabs)
-  #       if (tab == "tab1_whole_celltype") {
-  #         plot_names <- c("wholelung_umap", "wholelung_dotplot")
-  #         gene <- values$gene
-  #       } else if (tab == "tab4_epi_celltype") {
-  #         plot_names <- c("epi_umap", "epi_dotplot")
-  #         gene <- values$epi_gene
-  #       } else if (tab == "tab6_convergence") {
-  #         plot_names <- c("conv_diffmap", "conv_traj")
-  #         gene <- values$epi_gene
-  #       } else if (tab == "tab7_AT1traj") {
-  #         plot_names <- c("at1adi_diffmap", "at1adi_traj")
-  #         gene <- values$epi_gene
-  #       }
-  #       
-  #       files <- sapply(plot_names, function(x) {
-  #         p <- plots[[x]]
-  #         file_name <- paste0(x, "_", gene, ".pdf")
-  #         if (is.null(p)) {
-  #           return(NA)
-  #         }
-  #         ggsave(file = file_name, plot = p, dpi = 150)
-  #         return(file_name)
-  #       })
-  #       files <- files[!is.na(files)]
-  #       zip(file, files)
-  #     }
-  #   )
-  
+ 
   observeEvent(input$tabs, {
     req(input$tabs)
     tab <- input$tabs
@@ -595,6 +557,13 @@ shinyServer(function(input, output, session){
             ggsave(file = file, plot = p, width = 9, height = 5, dpi = 150)
           }
         )
+    }
+  })
+  
+o <- observeEvent(input$gene, {
+    if (!is.null(input$gene)) {
+      load_data()
+      o$destroy()
     }
   })
 }
