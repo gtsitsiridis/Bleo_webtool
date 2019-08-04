@@ -40,27 +40,33 @@ shinyServer(function(input, output, session){
   )
 
   observeEvent(input$gene, {
+    req(input$gene)
     new_gene_name <- input$gene
     values$gene <- new_gene_name
   })
   observeEvent(input$cell_type, {
+    req(input$cell_type)
     new_cell_type <- input$cell_type
     values$cell_type <- new_cell_type
   })
   observeEvent(input$meta_cell_type, {
+    req(input$meta_cell_type)
     new_meta_cell_type <- input$meta_cell_type
     values$meta_cell_type <- new_meta_cell_type
   })
   observeEvent(input$res, {
+    req(input$res)
     new_res <- input$res
     values$res <- new_res
   })
   
   observeEvent(input$spline_cell_type, {
+    req(input$spline_cell_type)
     new_spline_cell_type <- input$spline_cell_type
     values$spline_cell_type <- new_spline_cell_type
   })
   observeEvent(input$spline_gene, {
+    req(input$spline_gene)
     new_spline_gene <- input$spline_gene
     values$spline_gene <- new_spline_gene
   })
@@ -75,25 +81,30 @@ shinyServer(function(input, output, session){
   # })
   # 
   observeEvent(input$ccn_rec_ct, {
+    req(input$ccn_rec_ct)
     new_rec <- input$ccn_rec_ct
     values$ccn_rec_ct <- new_rec
   })
   observeEvent(input$ccn_lig_ct, {
+    req(input$ccn_lig_ct)
     new_lig <- input$ccn_lig_ct
     values$ccn_lig_ct <- new_lig
   })
   
   observeEvent(input$epi_cell_type, {
+    req(input$epi_cell_type)
     new_epi_cell_type <- input$epi_cell_type
     values$epi_cell_type <- new_epi_cell_type
   })
   
   observeEvent(input$epi_gene, {
+    req(input$epi_gene)
     new_epi_gene_name <- input$epi_gene
     values$epi_gene <- new_epi_gene_name
   })
 
   observeEvent(input$epi_res, {
+    req(input$epi_res) 
     new_res <- input$epi_res
     values$epi_res <- new_res
   })
@@ -154,6 +165,7 @@ shinyServer(function(input, output, session){
   
   ## Code for Figures
   output$tab1_celltype_panel <- renderPlot({
+    req(values$gene)
     gene_name <- values$gene
     if (is.null(gene_name)) {
       return()
@@ -181,10 +193,8 @@ shinyServer(function(input, output, session){
   })
   ## Markers Table
   output$tab1_markers_table <- DT::renderDataTable({
+    req(values$cell_type)
     cell_type <- values$cell_type
-    if (is.null(cell_type)) {
-      return()
-    }
     dt <- getMarkersTable(cell_type = cell_type, resolution = F)
     DT::datatable(dt, extensions = 'Buttons', options = list(pageLength = 25, scrollX = TRUE, scrollY = "400px",
                                                              searchHighlight = T, dom = '<"top"Bf>rt<"bottom"lip><"clear">',
@@ -197,12 +207,9 @@ shinyServer(function(input, output, session){
   
   ## Gene Kinetic Plots from Spline Table
   output$tab2_george_whole_kin <- renderPlot({
+    req(values$spline_gene, values$cell_type)
     gene <- values$spline_gene
     cell_type <- values$spline_cell_type
-    #smooth = values$smooth
-    if (is.null(cell_type) || is.null(gene)) {
-      return()
-    }
     withProgress(session = session, value = 0, {
       p <- try(plotSingleGene(celltype = cell_type, gene = gene), silent = T)
       incProgress(0.2, detail = "Plotting...")
@@ -213,15 +220,13 @@ shinyServer(function(input, output, session){
   ## Gene Kinetic Plots of whole Lung (todo, change to meta cell type)
   #
   output$tab2_whole_kin <- renderPlot({
+    req(values$gene, values$meta_cell_type)
     gene <- values$gene
     cell_type <- values$meta_cell_type
     #gene <- "Arg1"
     smooth = values$smooth
     type = values$res
     #cell_type <- "Macrophages"
-    if (is.null(cell_type) || is.null(gene)) {
-      return()
-    }
     withProgress(session = session, value = 0, {
       p <- try(genLinePlot(filename, gene, cell_type, metafile, min_cells = 5, type = type, smooth = smooth), silent = T)
       class(p)[3] <- "wholelung_kinplot"
@@ -231,11 +236,9 @@ shinyServer(function(input, output, session){
     })
   })
   output$tab3_ccn_table <- DT::renderDataTable({
+    req(values$ccn_rec_ct, values$ccn_lig_ct)
     rec <- values$ccn_rec_ct
     lig <- values$ccn_lig_ct
-    if (is.null(rec) || is.null(lig)) {
-      return()
-    }
     dt <- getRecLigTable(cell_type_rec = rec, cell_type_lig = lig)
     DT::datatable(dt, extensions = 'Buttons', options = list(pageLength = 25, scrollX = TRUE, scrollY = "400px",
                                                              searchHighlight = T, dom = '<"top"Bf>rt<"bottom"lip><"clear">',
@@ -247,6 +250,7 @@ shinyServer(function(input, output, session){
     )
   })
   output$tab3_ccn_splines <- renderPlot({
+    req(values$ccn_rec_ct, values$ccn_lig_ct)
     rec_ct = values$ccn_rec_ct
     lig_ct = values$ccn_lig_ct
     rec = values$ccn_rec
@@ -265,11 +269,9 @@ shinyServer(function(input, output, session){
   
   ## High Resolution Epithelium
   output$tab4_celltype_panel <- renderPlot({
+    req(values$epi_gene)
     gene_name <- values$epi_gene
     #gene_name = "Sftpc"
-    if (is.null(gene_name)) {
-      return()
-    }
     withProgress(session = session, value = 0, {
       setProgress(message = "Calculation in progress")
       p <- try(genUMAPplot(h5 = epi_filename, meta = epi_metafile, gene_name = gene_name), silent = T)
@@ -293,12 +295,10 @@ shinyServer(function(input, output, session){
   })
   ## Highres Epi Markers Table
   output$tab4_markers_table <- DT::renderDataTable({
+    req(values$epi_cell_type)
     #cell_type <- values$cell_type
     epi_cell_type = values$epi_cell_type
     res = values$epi_res
-    if (is.null(epi_cell_type)) {
-      return()
-    }
     dt <- getMarkersTable(cell_type = epi_cell_type, resolution = res)
     DT::datatable(dt, extensions = 'Buttons', options = list(pageLength = 25, scrollX = TRUE, scrollY = "400px",
                                                              searchHighlight = T, dom = '<"top"Bf>rt<"bottom"lip><"clear">',
@@ -311,12 +311,10 @@ shinyServer(function(input, output, session){
   })
   
   output$tab5_epi_kin <- renderPlot({
+    req(values$epi_gene, values$epi_cell_type)
     gene <- values$epi_gene
     cell_type <- values$epi_cell_type
     smooth = values$smooth
-    if (is.null(cell_type) || is.null(gene)) {
-      return()
-    }
     withProgress(session = session, value = 0, {
       p <- try(genLinePlot(epi_filename, gene, cell_type, epi_metafile, min_cells = 5, type = "meta_cell_type", smooth = smooth, epi = T), silent = T)
       class(p)[3] <- "epi_kinplot"
@@ -327,10 +325,8 @@ shinyServer(function(input, output, session){
   
   ## Convergence
   output$tab6_conv <- renderPlot({
+    req(values$epi_gene)
     gene_name <- values$epi_gene
-    if (is.null(gene_name)) {
-      return()
-    }
     withProgress(session = session, value = 0, {
       setProgress(message = "Calculation in progress")
       p <- try(convergence_feature_plot(gene_name = gene_name), silent = T)
@@ -353,11 +349,9 @@ shinyServer(function(input, output, session){
   
   ## Trajectory
   output$tab7_traj <- renderPlot({
+    req(values$epi_gene)
     gene_name <- values$epi_gene
     #gene_name = "Sftpc"
-    if (is.null(gene_name)) {
-      return()
-    }
     withProgress(session = session, value = 0, {
       setProgress(message = "Calculation in progress")
       p <- try(adi_at1_feature_plot(gene_name = gene_name), silent = T)
@@ -381,10 +375,8 @@ shinyServer(function(input, output, session){
   })
   
    output$conv_annot_table  <- DT::renderDataTable({
+    req(values$cell_type)
     cell_type <- values$cell_type
-    if (is.null(cell_type)) {
-      return()
-    }
     dt <- convergence_annot
     DT::datatable(dt, extensions = 'Buttons', options = list(pageLength = 25, scrollX = TRUE, scrollY = "400px",
                                                              searchHighlight = T, dom = '<"top"Bf>rt<"bottom"lip><"clear">',
@@ -397,10 +389,8 @@ shinyServer(function(input, output, session){
   
  
   output$traj_annot_table <- DT::renderDataTable({
+    req(values$cell_type)
     cell_type <- values$cell_type
-    if (is.null(cell_type)) {
-      return()
-    }
     dt <- adi_at1_annot
     DT::datatable(dt, extensions = 'Buttons', options = list(pageLength = 25, scrollX = TRUE, scrollY = "400px",
                                                              searchHighlight = T, dom = '<"top"Bf>rt<"bottom"lip><"clear">',
@@ -414,6 +404,7 @@ shinyServer(function(input, output, session){
   ## Extras
   #deal with selection from marker's table
   observeEvent(input$tab1_markers_table_rows_selected, {
+    req(input$tab1_markers_table_rows_selected)
     row_selected <- input$tab1_markers_table_rows_selected
     isolate(cell_type <- values$cell_type)
     dt <- markers_table[markers_table$louvain_cluster == cell_type,]
@@ -423,6 +414,7 @@ shinyServer(function(input, output, session){
   })
   
   observeEvent(input$tab4_markers_table_rows_selected, {
+    req(input$tab4_markers_table_rows_selected)
     row_selected <- input$tab4_markers_table_rows_selected
     
     isolate(epi_cell_type <- values$epi_cell_type)
@@ -437,6 +429,7 @@ shinyServer(function(input, output, session){
   
   #deal with selection from Receptor Ligand table
   observeEvent(input$tab3_ccn_table_rows_selected, {
+    req(input$tab3_ccn_table_rows_selected)
     row_selected <- input$tab3_ccn_table_rows_selected
     
     isolate(rec_ct <- values$ccn_rec_ct)
@@ -449,18 +442,8 @@ shinyServer(function(input, output, session){
     values$ccn_lig <- new_lig
   })
   
-  observeEvent(input$tab4_markers_table_rows_selected, {
-    row_selected <- input$tab4_markers_table_rows_selected
-    
-    isolate(epi_cell_type <- values$epi_cell_type)
-    isolate(epi_res <- values$epi_res)
-    dt <- getMarkersTable(cell_type = epi_cell_type, resolution = epi_res)
-    
-    new_gene_name <- dt[row_selected, "gene"]
-    values$epi_gene <- new_gene_name
-  })
-  
   observeEvent(input$traj_annot_table_rows_selected, {
+    req(input$traj_annot_table_rows_selected)    
     row_selected <- input$traj_annot_table_rows_selected
 
     dt <- adi_at1_annot
@@ -470,6 +453,7 @@ shinyServer(function(input, output, session){
   })
  
   observeEvent(input$conv_annot_table_rows_selected, {
+    req(input$conv_annot_table_rows_selected)    
     row_selected <- input$conv_annot_table_rows_selected
 
     dt <- convergence_annot
