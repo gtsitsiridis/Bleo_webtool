@@ -17,17 +17,17 @@ shinyServer(function(input, output, session){
     help <- list()
     
     help[["tab1_whole_celltype"]] <-
-      HTML('<center><strong><p>To select a cell type-gene pair, use the respective sidebar drop-down menus. Alternatively you can also select a gene by clicking on a row from the DE table.</strong></p></center>')
+      HTML('<center><strong><p>To select a cell type and gene, use the respective sidebar drop-down menus click on a row from the table.</strong></p></center>')
     help[["tab2_george_whole_kinetics"]] <-
-      HTML('<center><strong><p>To select a cell type-gene pair, use the respective sidebar drop-down menus.</strong></p></center>')
+      HTML('<center><strong><p>To select a cell type and gene, use the respective sidebar drop-down menus.</strong></p></center>')
     help[["tab3_ccn"]] <-
-      HTML('<center><strong><p>To select a receptor-ligand pair of cell types, use the respective sidebar drop-down menus. Then please click on a row in the table to select a receptor-ligand pair of genes.</strong></p></center>')
+      HTML('<center><strong><p>To select a receptor-ligand pair, click on a row in the table. Use the sidebar drop-down menus to narrow down your search.</strong></p></center>')
     help[["tab4_epi_celltype"]] <-
-      HTML('<center><strong><p>To select a cell type-gene pair, use the respective sidebar drop-down menus. Alternatively you can also select a gene by clicking on a row from the DE table. You may also specify the resolution of the DE table by using the radio button on the sidebar.</strong></p></center>')
+      HTML('<center><strong><p>To select a cell type and gene, use the respective sidebar drop-down menus click on a row from the table.</strong></p></center>')
     help[["tab6_convergence"]] <-
-      HTML('<center><strong><p>Please select a gene using the sidebar dropdown menu. Alternatively you can also select a gene by clicking on a row from the table.</strong></p></center>')
+      HTML('<center><strong><p>Please select a gene  by using the sidebar dropdown menu or clicking on a row from the table.</strong></p></center>')
     help[["tab7_AT1traj"]] <-
-      HTML('<center><strong><p>Please select a gene using the sidebar dropdown menu. Alternatively you can also select a gene by clicking on a row from the table.</strong></p></center>')
+      HTML('<center><strong><p>Please select a gene  by using the sidebar dropdown menu or clicking on a row from the table.</strong></p></center>')
     
     output$description <-
       renderUI(HTML("<center><h1></h1></center>"))
