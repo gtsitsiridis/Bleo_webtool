@@ -414,7 +414,7 @@ shinyServer(function(input, output, session){
     req(input$tab1_markers_table_rows_selected)
     row_selected <- input$tab1_markers_table_rows_selected
     isolate(cell_type <- values$cell_type)
-    dt <- markers_table[markers_table$louvain_cluster == cell_type,]
+    dt <- markers_table[markers_table$cell_type == cell_type,]
     
     new_gene_name <- dt[row_selected, "gene"]
     values$gene <- new_gene_name
