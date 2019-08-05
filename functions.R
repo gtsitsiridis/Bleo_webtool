@@ -34,6 +34,7 @@ emptyPlot <- function(type="general") {
 select_cell_type <- function(meta, column = "cell_type", type = F){
   if(type == F){
     ct <- unique(meta[, column])
+    ct<- ct[order(ct)]
     return(ct[which(!is.na(ct))])
   }
   else{
