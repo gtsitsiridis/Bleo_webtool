@@ -42,7 +42,7 @@ select_cell_type <- function(meta, column = "cell_type", type = F){
   }
 }
 
-genUMAPplot <- function(h5, meta, gene_name = 'Arg1') {
+genUMAPplot <- function(h5, meta, gene_name = 'Sftpc') {
   gene <- h5read(h5, gene_name)
   gene <- (gene - min(gene))/(max(gene) - min(gene))
   H5close()

@@ -8,7 +8,7 @@ shinyUI(tagList(
     skin = "black",
     dashboardHeader(
       titleWidth = 720,
-      title = HTML("Mouse Lung Injury and Regeneration – Schiller and Theis labs @ Helmholtz Zentrum München"),
+      title = HTML("Mouse Lung Injury and Regeneration – Schiller and Theis labs @ Helmholtz Center Munich"),
       tags$li(
         class = "dropdown",
         HTML(
@@ -33,8 +33,8 @@ shinyUI(tagList(
                        menuItem("Whole Lung Cell-Cell Communication", tabName = "tab3_ccn"),
                        menuItem("Lung Epithelium Cell Type Signatures", tabName = "tab4_epi_celltype"),
                        # menuItem("Lung Epithelium Gene Kinetics", tabName = "tab5_epi_kinetics"),
-                       menuItem("Lung Epithelium Convergence", tabName = "tab6_convergence"),
-                       menuItem("Lung Epithelium ADI to AT1", tabName = "tab7_AT1traj")
+                       menuItem("Convergence trajectory", tabName = "tab6_convergence"),
+                       menuItem("Krt8 progenitors to AT1 trajectory", tabName = "tab7_AT1traj")
                      ),
                      
                      conditionalPanel(
