@@ -105,7 +105,7 @@ shinyUI(tagList(
     dashboardBody(
       div(
         id = "loading-content2",class="loading-content",
-        HTML("<img src='spinner.gif' style='padding-top:10px;padding-right:10px;' height='500'/>"
+        HTML("<img src='spinner.gif' style='padding-top:50px;padding-right:10px;' height='100'/>"
         ),
         style="z-index:10;"
       ),
