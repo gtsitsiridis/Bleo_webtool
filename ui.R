@@ -39,7 +39,7 @@ shinyUI(tagList(
                      
                      conditionalPanel(
                        "input.tabs == 'tab1_whole_celltype'",
-     selectInput("cell_type", "Query cell type:", select_cell_type(metafile, column = "louvain_cluster"), selected = "Macrophages")),
+     selectInput("cell_type", "Query cell type:", select_cell_type(metafile, column = "cell_type"), selected = "Macrophages")),
                       
                        # uiOutput("cell_type_selector")),
                      
