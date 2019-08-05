@@ -8,7 +8,7 @@ shinyUI(tagList(
     skin = "black",
     dashboardHeader(
       titleWidth = 720,
-      title = HTML("Mouse Lung Injury and Regeneration – Schiller and Theis labs @ Helmholtz Center Munich"),
+      title = HTML("Mouse Lung Injury & Regeneration – Schiller & Theis labs @ Helmholtz Center Munich"),
       tags$li(
         class = "dropdown",
         HTML(
