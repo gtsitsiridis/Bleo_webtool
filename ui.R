@@ -39,7 +39,10 @@ shinyUI(tagList(
                      
                      conditionalPanel(
                        "input.tabs == 'tab1_whole_celltype'",
-     selectInput("cell_type", "Query cell type:", select_cell_type(metafile, column = "cell_type"), selected = "Macrophages")),
+     selectInput("cell_type", "Query cell type:", {
+       tmp_cell_types <- select_cell_type(metafile, column = "cell_type")
+       tmp_cell_types[tmp_cell_types!="AM (Bleo)"]
+       }, selected = "Macrophages")),
                       
                        # uiOutput("cell_type_selector")),
                      
@@ -89,10 +92,10 @@ shinyUI(tagList(
                        "input.tabs == 'tab7_AT1traj'",
                        selectInput("traj_epi_gene", "Query gene:", adi_at1_annot$Gene, selected = "Sftpc")
                      ),
-                     conditionalPanel(
-                       "input.tabs == 'tab4_epi_celltype' | input.tabs == 'tab5_epi_kinetics'",
-                       radioButtons("epi_res", "Resolution",  
-                                    choices = c("res_2", "cell_type_2", "cell_type_4"), selected = "cell_type_2")),
+                     # conditionalPanel(
+                     #   "input.tabs == 'tab4_epi_celltype' | input.tabs == 'tab5_epi_kinetics'",
+                     #   radioButtons("epi_res", "Resolution",  
+                     #                choices = c("res_2", "cell_type_2", "cell_type_4"), selected = "cell_type_2")),
                        # uiOutput("epi_res_selector")),
                      
                      conditionalPanel(
@@ -134,12 +137,12 @@ shinyUI(tagList(
                   box(
                     collapsible = TRUE,
                     width = 8,
-                    spinner(plotOutput("tab1_celltype_panel", height = "500px"))
+                    spinner(plotOutput("tab1_celltype_panel", height = "700px"))
                   ),
                   box(
                     collapsible = TRUE,
                     width = 4,
-                    spinner(DT::dataTableOutput("tab1_markers_table", height = "500px"))
+                    spinner(DT::dataTableOutput("tab1_markers_table", height = "600px"))
                   )
                 )),
         

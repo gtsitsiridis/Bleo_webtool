@@ -56,7 +56,7 @@ shinyServer(function(input, output, session){
   values <- reactiveValues(gene = NULL, cell_type = NULL, meta_cell_type = NULL, res = NULL,
                            smooth = NULL, spline_gene = NULL, spline_cell_type = NULL,
                            ccn = NULL, ccn_rec = NULL, ccn_lig = NULL,
-                           epi_gene = NULL, epi_cell_type = NULL, epi_res = NULL,
+                           epi_gene = NULL, epi_cell_type = NULL, epi_res = "cell_type_4",
                            tab1_markers_table = NULL, tab4_markers_table = NULL, tab2_whole_kin_table = NULL)
   
   plots <- reactiveValues(

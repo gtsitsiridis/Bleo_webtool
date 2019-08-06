@@ -56,6 +56,7 @@ genUMAPplot <- function(h5, meta, gene_name = 'Sftpc') {
 
 ## DotPlot (taken and adapted from Aging)
 dotPlot <- function (h5, meta, gene_name = "Scgb1a1") {
+  meta$cell_type[meta$cell_type == "AM (Bleo)"] <- "AMs (Bleo)"
   # Defaults
   cols.use = c("lightgrey", "blue")
   plot.legend = FALSE
