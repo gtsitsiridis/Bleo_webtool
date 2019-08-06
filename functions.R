@@ -109,8 +109,9 @@ dotPlot <- function (h5, meta, gene_name = "Scgb1a1") {
   if(sum(is.na(data.to.plot$CellType)) > 0){
     data.to.plot <- data.to.plot[-which(is.na(data.to.plot$CellType)),]
   }
+  data.to.plot$CellType[data.to.plot$CellType == "other activated club cells"] <- "club to ciliated"
   data.to.plot$CellType <- factor(data.to.plot$CellType, levels = rev(sort(as.character(data.to.plot$CellType))))
-
+   
   p <-
     ggplot(data = data.to.plot, mapping = aes(x = Gene, y = CellType)) +
     geom_point(mapping = aes(size = PctExpressed, color = AvgRelExpr)) +
@@ -271,8 +272,7 @@ plot_RecLig_expression <- function(rec, lig, rec_ct, lig_ct){
   if(lig_ct %in% c("Krt8 progenitors", "AT1 cells", "AT2 cells")) {
     lig_ct <- "Alveolar epithelium"
   }
-  print(rec_ct)
-  print(lig_ct)
+
   rec_expr <- return_scaled_expr(rec, rec_ct, mode = "Receptor")
   lig_expr <- return_scaled_expr(lig, lig_ct, mode = "Ligand")
   dt <- rbind(rec_expr, lig_expr)
