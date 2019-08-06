@@ -224,27 +224,36 @@ select_spline_genes <- function(cell_type = "alv_epithelium"){
   return(genes)
 }
 
-getRecLigTable <- function(cell_type_rec = "Macrophages", cell_type_lig = "Fibroblasts") {
-  dt <- rec_lig[rec_lig$metacelltype.rec == cell_type_rec & rec_lig$metacelltype.lig == cell_type_lig, ]
-  cols <- c(paste0(c("gene.", "metacelltype.", "avg_logFC.", "p_val.", "p_val_adj.", "spline_adj_pval_"), "rec"),
-            paste0(c("gene.", "metacelltype.", "avg_logFC.", "p_val.", "p_val_adj.", "spline_adj_pval_"), "lig"))
+getRecLigTable <- function(cell_type_rec = "Alveolar macrophages", cell_type_lig = "Classical monocytes") {
+  dt <- rec_lig[rec_lig$cluster.rec == cell_type_rec & rec_lig$cluster.lig == cell_type_lig, ]
+  # cols <- c(paste0(c("gene.", "metacelltype.", "avg_logFC.", "p_val.", "p_val_adj.", "spline_adj_pval_"), "rec"),
+  #           paste0(c("gene.", "metacelltype.", "avg_logFC.", "p_val.", "p_val_adj.", "spline_adj_pval_"), "lig"))
+  cols <- c("receptor", "cluster.rec", "logFC.rec", "pval.rec",
+            "ligand", "cluster.lig", "logFC.lig", "pval.lig")  
   dt <- dt[, cols]
-  for(col in c(paste0(c("avg_logFC.", "p_val.", "p_val_adj.", "spline_adj_pval_"), "rec"), 
-               paste0(c("avg_logFC.", "p_val.", "p_val_adj.", "spline_adj_pval_"), "lig"))){
+  for(col in c("pval.lig", "pval.rec")
+    # paste0(c("avg_logFC.", "p_val.", "p_val_adj.", "spline_adj_pval_"), "rec"), 
+    #            paste0(c("avg_logFC.", "p_val.", "p_val_adj.", "spline_adj_pval_"), "lig"))
+    ){
     dt[, col] <- suppressWarnings(as.numeric(formatC(dt[, col], digits = 3, format = "e")))
   }
-  for(col in c("avg_logFC.rec", "avg_logFC.lig")){
+  for(col in c("logFC.rec", "logFC.lig")
+      # c("avg_logFC.rec", "avg_logFC.lig")
+      ){
     dt[, col] <- round(dt[, col], 3)
   }
   dt
 }
 
 ## Tab 3 Average Expression of Ligand Receptor Pairs
-return_scaled_expr <- function(gene_name, cell_type, mode, type = "meta_cell_type"){
+return_scaled_expr <- function(gene_name, cell_type, mode, type = "spline_cell_type"){
   scale <- function(x) (x - min(x))/(max(x) - min(x))
   
   expr <- data.frame(h5read(filename, gene_name))
-  expr$cell_type = gsub(" ", "_", metafile[, type])   ## different meta cell type sep
+  expr$cell_type = metafile[, type]
+    # gsub(" ", "_", 
+                        # metafile[, type]
+                        # )   ## different meta cell type sep
   expr$day = as.numeric(gsub("d", "", metafile$grouping))
   expr <- expr[expr$cell_type == cell_type, ]
   expr <- na.omit(expr)
@@ -254,6 +263,10 @@ return_scaled_expr <- function(gene_name, cell_type, mode, type = "meta_cell_typ
 }
 
 plot_RecLig_expression <- function(rec, lig, rec_ct, lig_ct){
+  print(rec)
+  print(lig)
+  print(rec_ct)
+  print(lig_ct)
   rec_expr <- return_scaled_expr(rec, rec_ct, mode = "Receptor")
   lig_expr <- return_scaled_expr(lig, lig_ct, mode = "Ligand")
   dt <- rbind(rec_expr, lig_expr)

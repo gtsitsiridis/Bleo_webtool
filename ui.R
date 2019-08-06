@@ -67,11 +67,11 @@ shinyUI(tagList(
                      
                      conditionalPanel(
                        "input.tabs == 'tab3_ccn'",
-                       selectInput("ccn_rec_ct", "Query receptor:", select_cell_type(rec_lig, column = "metacelltype.rec"), selected = "Macrophages")),
+                       selectInput("ccn_rec_ct", "Query receptor:", select_cell_type(rec_lig, column = "cluster.rec"), selected = "Macrophages")),
                        # uiOutput("ccn_rec_selector")),
                      conditionalPanel(
                        "input.tabs == 'tab3_ccn'",
-                       selectInput("ccn_lig_ct", "Query ligand:", select_cell_type(rec_lig, column = "metacelltype.lig"), selected = "Fibroblasts")),
+                       selectInput("ccn_lig_ct", "Query ligand:", select_cell_type(rec_lig, column = "cluster.lig"), selected = "Fibroblasts")),
                        # uiOutput("ccn_lig_selector")),
                      
                      conditionalPanel(
@@ -105,8 +105,9 @@ shinyUI(tagList(
     dashboardBody(
       div(
         id = "loading-content2",class="loading-content",
-        HTML("<img src='spinner.gif' style='padding-top:50px;padding-right:10px;' height='100'/>"
-        ),
+        h2("Loading...please wait"),
+        # HTML("<img src='spinner.gif' style='padding-top:50px;padding-right:10px;' height='100'/>"
+        # ),
         style="z-index:10;"
       ),
       fluidRow(column(10, htmlOutput("help")), column(

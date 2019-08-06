@@ -443,8 +443,8 @@ shinyServer(function(input, output, session){
     isolate(lig_ct <- values$ccn_lig_ct)
     dt <- getRecLigTable(cell_type_rec = rec_ct, cell_type_lig = lig_ct)
     
-    new_rec <- dt[row_selected, "gene.rec"]
-    new_lig <- dt[row_selected, "gene.lig"]
+    new_rec <- dt[row_selected, "receptor"]
+    new_lig <- dt[row_selected, "ligand"]
     values$ccn_rec <- new_rec
     values$ccn_lig <- new_lig
   })
