@@ -57,7 +57,7 @@ shinyServer(function(input, output, session){
                            smooth = NULL, spline_gene = NULL, spline_cell_type = NULL,
                            ccn = NULL, ccn_rec = NULL, ccn_lig = NULL,
                            epi_gene = NULL, epi_cell_type = NULL, epi_res = NULL,
-                           tab1_markers_table = NULL, tab4_markers_table = NULL)
+                           tab1_markers_table = NULL, tab4_markers_table = NULL, tab2_whole_kin_table = NULL)
   
   plots <- reactiveValues(
     wholelung_umap = NULL,
@@ -137,6 +137,18 @@ shinyServer(function(input, output, session){
     new_epi_gene_name <- input$epi_gene
     values$epi_gene <- new_epi_gene_name
   })
+  
+  observeEvent(input$conv_epi_gene, {
+    req(input$conv_epi_gene)
+    new_epi_gene_name <- input$conv_epi_gene
+    values$epi_gene <- new_epi_gene_name
+  })
+  
+  observeEvent(input$traj_epi_gene, {
+    req(input$traj_epi_gene)
+    new_epi_gene_name <- input$traj_epi_gene
+    values$epi_gene <- new_epi_gene_name
+  })
 
   observeEvent(input$epi_res, {
     req(input$epi_res) 
@@ -150,12 +162,11 @@ shinyServer(function(input, output, session){
     res = values$res
     selectInput("meta_cell_type", "Query cell type:", select_cell_type(metafile, column = res), selected = "Macrophages")
   })
-
+  
   output$spline_gene_selector <- renderUI({
-    req(values$spline_cell_type)
-    cell_type = values$spline_cell_type
-    if(is.null(cell_type)) selectInput("spline_gene", "Query gene:", "Krt8", selected = "Krt8")
-    else selectInput("spline_gene", "Query gene:", rownames(wholeLung_spline[[cell_type]]), selected = "Krt8")
+    req(values$tab2_whole_kin_table)
+    if(is.null(values$tab2_whole_kin_table)) selectInput("spline_gene", "Query gene:", "Krt8", selected = "Krt8")
+    else selectInput("spline_gene", "Query gene:", values$tab2_whole_kin_table$gene, selected = "Krt8")
   })
 
   output$epi_cell_type_selector <- renderUI({
@@ -166,6 +177,18 @@ shinyServer(function(input, output, session){
     res = values$epi_res
     selectInput("epi_cell_type", "Query cell type:", select_cell_type(epi_markers_table, type = res), selected = "AT2 cells")
   })
+  
+  # output$epi_gene_selector <- renderUI({
+  #   req(input$tabs)
+  #   sorted_genes <- epi_genes
+  #   if(input$tabs == "tab6_convergence"){
+  #     sorted_genes <- convergence_annot$Gene
+  #   }else if (input$tabs == "tab7_AT1traj"){
+  #     sorted_genes <- adi_at1_annot$Gene
+  #   }
+  #   
+  #   selectInput("epi_gene", "Query gene:", sorted_genes, selected = "Sftpc")
+  # })
 
   
   ## Code for Figures
@@ -212,7 +235,7 @@ shinyServer(function(input, output, session){
   
   ## Gene Kinetic Plots from Spline Table
   output$tab2_george_whole_kin <- renderPlot({
-    req(values$spline_gene, values$cell_type)
+    req(values$spline_gene, values$spline_cell_type)
     gene <- values$spline_gene
     cell_type <- values$spline_cell_type
     withProgress(session = session, value = 0, {
@@ -222,6 +245,22 @@ shinyServer(function(input, output, session){
       incProgress(0.2, detail = "Plotting...")
       p
     })
+  })
+  
+  output$whole_kin_table <- DT::renderDataTable({
+    req(values$spline_cell_type)
+    cell_type <- values$spline_cell_type
+    
+    dt <- getWholeKinTable(cell_type)
+    values$tab2_whole_kin_table <- dt
+    DT::datatable(dt, extensions = 'Buttons', options = list(pageLength = 25, scrollX = TRUE, scrollY = "400px",
+                                                             searchHighlight = T, dom = '<"top"Bf>rt<"bottom"lip><"clear">',
+                                                             buttons = list('print', list(extend =  "csv", title = "file"),
+                                                                            list(extend =  "pdf", title = "file")),
+                                                             columnDefs = list(list(className = 'dt-center', targets = "_all"))),
+                  rownames = FALSE,
+                  selection = list(mode = 'single', target = 'row')
+    )
   })
   
   ## Gene Kinetic Plots of whole Lung (todo, change to meta cell type)
@@ -467,6 +506,15 @@ shinyServer(function(input, output, session){
     
     new_gene_name <- dt[row_selected, "Gene"]
     values$epi_gene <- new_gene_name
+  }) 
+  
+  observeEvent(input$whole_kin_table_rows_selected, {
+    req(input$whole_kin_table_rows_selected)    
+    row_selected <- input$whole_kin_table_rows_selected
+    
+    dt <- values$tab2_whole_kin_table
+    new_gene_name <- dt[row_selected, "gene"]
+    values$spline_gene <- new_gene_name
   }) 
  
   observeEvent(input$tabs, {

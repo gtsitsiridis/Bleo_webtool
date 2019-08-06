@@ -219,6 +219,13 @@ plotSingleGene <- function(celltype = 'fibroblasts', gene = "Tnc"){
   p
 }
 
+getWholeKinTable <- function(celltype = 'fibroblasts'){
+  dt <- wholeLung_spline[[celltype]]
+  dt$gene <- rownames(dt)
+  dt <- dt[order(dt$pval),c("gene", "pval","adj_pval")]
+  dt
+}
+
 ## Only have significant genes as suggestions in query
 select_spline_genes <- function(cell_type = "alv_epithelium"){
   genes <- spline_expr$gene[spline_expr$cell.type == cell_type]

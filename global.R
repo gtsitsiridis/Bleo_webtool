@@ -34,10 +34,7 @@ adi_at1 <- readRDS(adi_at1_path)
 adi_at1_annot_path <- "data/adi_at1_annot.RDS"
 checkFile(adi_at1_annot_path)
 adi_at1_annot <- readRDS(adi_at1_annot_path)
-
-convergence_path <- "data/adi_at1.RDS"
-checkFile(adi_at1_path)
-adi_at1 <- readRDS(adi_at1_path)
+adi_at1_annot <- adi_at1_annot[order(adi_at1_annot$`P-value`),]
 
 convergence_path <- "data/convergence.RDS"
 checkFile(convergence_path)
@@ -46,6 +43,7 @@ convergence <- readRDS(convergence_path)
 convergence_annot_path <- "data/convergence_annot.RDS"
 checkFile(convergence_annot_path)
 convergence_annot <- readRDS(convergence_annot_path)
+convergence_annot <- convergence_annot[order(convergence_annot$`P-value`),]
 
 ## Whole Lung Files
 filename = "data/WholeLung_data.h5" 

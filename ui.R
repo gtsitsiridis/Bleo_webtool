@@ -48,7 +48,7 @@ shinyUI(tagList(
                        uiOutput("meta_cell_type_selector")),
                      conditionalPanel(
                        "input.tabs == 'tab1_whole_celltype' || input.tabs == 'tab2_whole_kinetics'",
-                       selectInput("gene", "Query gene:", genes, selected = "Arg1")),
+                       selectInput("gene", "Query gene:", genes, selected = "Sftpc")),
                   
                        # uiOutput("gene_selector")),
                      conditionalPanel(
@@ -75,15 +75,20 @@ shinyUI(tagList(
                        # uiOutput("ccn_lig_selector")),
                      
                      conditionalPanel(
-                       "input.tabs == 'tab4_epi_celltype' | input.tabs == 'tab5_epi_kinetics'",
+                       "input.tabs == 'tab4_epi_celltype' || input.tabs == 'tab5_epi_kinetics'",
                        uiOutput("epi_cell_type_selector")),
                      conditionalPanel(
-                       paste0("input.tabs == 'tab4_epi_celltype' | input.tabs == 'tab5_epi_kinetics' ",
-                         "| input.tabs == 'tab6_convergence' | input.tabs == 'tab7_AT1traj'"),
+                       paste0("input.tabs == 'tab4_epi_celltype' || input.tabs == 'tab5_epi_kinetics'"),
                        selectInput("epi_gene", "Query gene:", epi_genes, selected = "Sftpc"),
-                       # uiOutput("epi_gene_selector"),
                        type = 2, color.background = "#222d32"),
-                     
+                     conditionalPanel(
+                       "input.tabs == 'tab6_convergence'",
+                       selectInput("conv_epi_gene", "Query gene:", convergence_annot$Gene, selected = "Sftpc")
+                      ),
+                     conditionalPanel(
+                       "input.tabs == 'tab7_AT1traj'",
+                       selectInput("traj_epi_gene", "Query gene:", adi_at1_annot$Gene, selected = "Sftpc")
+                     ),
                      conditionalPanel(
                        "input.tabs == 'tab4_epi_celltype' | input.tabs == 'tab5_epi_kinetics'",
                        radioButtons("epi_res", "Resolution",  
@@ -139,9 +144,17 @@ shinyUI(tagList(
                 )),
         
         tabItem(tabName = "tab2_george_whole_kinetics",
-                mainPanel(
-                  spinner(plotOutput("tab2_george_whole_kin", height = "500px", width = "1100px"))
-                )),
+                box(
+                  collapsible = TRUE,
+                  width = 8,
+                  spinner(plotOutput("tab2_george_whole_kin", height = "500px"))
+                ),
+                box(
+                  collapsible = TRUE,
+                  width = 4,
+                  spinner(DT::dataTableOutput("whole_kin_table", height = "500px"))
+                )
+                ),
         
         tabItem(tabName = "tab2_whole_kinetics",
                 mainPanel(
