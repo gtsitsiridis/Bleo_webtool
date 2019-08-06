@@ -263,8 +263,14 @@ return_scaled_expr <- function(gene_name, cell_type, mode, type = "spline_cell_t
 }
 
 plot_RecLig_expression <- function(rec, lig, rec_ct, lig_ct){
-  print(rec)
-  print(lig)
+  # For "Krt8 progenitors", "AT1 cells" and "AT2 cells" we will plot the expression based on "Alveolar epithelium"
+  if(rec_ct %in% c("Krt8 progenitors", "AT1 cells", "AT2 cells")) {
+    rec_ct <- "Alveolar epithelium"
+  }
+  
+  if(lig_ct %in% c("Krt8 progenitors", "AT1 cells", "AT2 cells")) {
+    lig_ct <- "Alveolar epithelium"
+  }
   print(rec_ct)
   print(lig_ct)
   rec_expr <- return_scaled_expr(rec, rec_ct, mode = "Receptor")
