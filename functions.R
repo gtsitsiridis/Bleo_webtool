@@ -280,15 +280,41 @@ plot_RecLig_expression <- function(rec, lig, rec_ct, lig_ct){
   if(lig_ct %in% c("Krt8 progenitors", "AT1 cells", "AT2 cells")) {
     lig_ct <- "Alveolar epithelium"
   }
-
-  rec_expr <- return_scaled_expr(rec, rec_ct, mode = "Receptor")
-  lig_expr <- return_scaled_expr(lig, lig_ct, mode = "Ligand")
-  dt <- rbind(rec_expr, lig_expr)
-  ggplot(dt, aes(y = expression, x = day, group = type, color = type)) + 
+  
+  gene <- h5read('data/WholeLung_data.h5', rec)
+  gene <- (gene - min(gene))/(max(gene) - min(gene))
+  rec_expr <- gene
+  
+  gene <- h5read('data/WholeLung_data.h5', lig)
+  gene <- (gene - min(gene))/(max(gene) - min(gene))
+  lig_expr <- gene
+  
+  H5close()
+  
+  aframe <- data.frame(rec_expr, metafile)
+  aframe <- aframe[which(aframe$spline_cell_type == rec_ct),]
+  means <- unlist(lapply(split(aframe$rec, aframe$identifier), mean))
+  day <- aframe$grouping[match(names(means), aframe$identifier)]
+  day <- as.numeric(gsub('d', '', day))
+  rec_matr <- data.frame(receptor = means, day)
+  
+  aframe <- data.frame(lig_expr, metafile)
+  aframe <- aframe[which(aframe$spline_cell_type == lig_ct),]
+  means <- unlist(lapply(split(aframe$lig, aframe$identifier), mean))
+  day <- aframe$grouping[match(names(means), aframe$identifier)]
+  day <- as.numeric(gsub('d', '', day))
+  lig_matr <- data.frame(ligand = means, day)
+  
+  rec_plot <- ggplot(rec_matr, aes(y = receptor, x = day)) +
     geom_smooth(se = T, level = 0.8, method = "loess") +
-    ylab(paste("Scaled expression")) + xlab("days") + 
-    theme(legend.position="top", legend.title = element_blank(), legend.justification = "center")
-    #ggtitle(paste0(rec, " - ", lig))
+    ylab(paste(rec, "expression")) + xlab("days") + ggtitle(rec_ct)
+  
+  lig_plot <- ggplot(lig_matr, aes(y = ligand, x = day)) +
+    geom_smooth(se = T, level = 0.8, method = "loess") +
+    ylab(paste(lig, "expression")) + xlab("days") + ggtitle(lig_ct)
+  
+  grid.arrange(rec_plot, lig_plot, ncol = 2)
+  
 }
 
 ## Tab 6 Convergence club and AT2 to ADI
