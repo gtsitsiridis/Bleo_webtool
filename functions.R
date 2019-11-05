@@ -44,14 +44,19 @@ select_cell_type <- function(meta, column = "cell_type", type = F){
 }
 
 genUMAPplot <- function(h5, meta, gene_name = 'Sftpc') {
-  gene <- h5read(h5, gene_name)
+  gene <- rhdf5::h5read(h5, gene_name)
   gene <- (gene - min(gene))/(max(gene) - min(gene))
-  H5close()
+  rhdf5::H5close()
   dt <- cbind(meta[, c("UMAP1", "UMAP2")], expression = gene)
+  
+  asplit <- split(1:nrow(meta), meta$cell_type)
+  coord <- do.call(rbind, lapply(asplit, function(x) c(median(meta$UMAP1[x]), median(meta$UMAP2[x]))))
+  
   sc <- scale_colour_gradientn(colours = magma(20, alpha = 0.5, direction = -1), limits= range(gene))
   ggplot(dt) + geom_point(aes(UMAP1, UMAP2, col = gene), size = 0.3, alpha = .5) +
     guides(col = F) +
-    ggtitle(gene_name) + sc
+    ggtitle(gene_name) + sc +
+    annotate(geom = "text", x = coord[,1], y = coord[,2], label = rownames(coord))
 }
 
 ## DotPlot (taken and adapted from Aging)
@@ -78,7 +83,7 @@ dotPlot <- function (h5, meta, gene_name = "Scgb1a1") {
   }
   
   # Load gene expression
-  genExp <- h5read(h5, gene_name)
+  genExp <- rhdf5::h5read(h5, gene_name)
   data.to.plot <- data.table(genExp)
   colnames(x = data.to.plot) <- "expression"
   data.to.plot$id <- meta$cell_type
@@ -131,7 +136,7 @@ dotPlot <- function (h5, meta, gene_name = "Scgb1a1") {
 ## Plot mean expression on each measured day (sample needs to have min_cells 
 ## cells expressing the gene to be considered)
 genLinePlot <- function(h5, gene, cell_type, meta, type = "meta_cell_type", min_cells = 5, smooth = F, epi = F){
-  genExp <- data.frame(expression = h5read(h5, gene))
+  genExp <- data.frame(expression = rhdf5::h5read(h5, gene))
   genExp$cell_type = meta[, type]
   genExp$identifier = meta$identifier
   genExp$day = as.numeric(gsub("d", "", meta$grouping))
@@ -258,7 +263,7 @@ getRecLigTable <- function(cell_type_rec = "Alveolar macrophages", cell_type_lig
 return_scaled_expr <- function(gene_name, cell_type, mode, type = "spline_cell_type"){
   scale <- function(x) (x - min(x))/(max(x) - min(x))
   
-  expr <- data.frame(h5read(filename, gene_name))
+  expr <- data.frame(rhdf5::h5read(filename, gene_name))
   expr$cell_type = metafile[, type]
     # gsub(" ", "_", 
                         # metafile[, type]
@@ -281,15 +286,15 @@ plot_RecLig_expression <- function(rec, lig, rec_ct, lig_ct){
     lig_ct <- "Alveolar epithelium"
   }
   
-  gene <- h5read('data/WholeLung_data.h5', rec)
+  gene <- rhdf5::h5read('data/WholeLung_data.h5', rec)
   gene <- (gene - min(gene))/(max(gene) - min(gene))
   rec_expr <- gene
   
-  gene <- h5read('data/WholeLung_data.h5', lig)
+  gene <- rhdf5::h5read('data/WholeLung_data.h5', lig)
   gene <- (gene - min(gene))/(max(gene) - min(gene))
   lig_expr <- gene
   
-  H5close()
+  rhdf5::H5close()
   
   aframe <- data.frame(rec_expr, metafile)
   aframe <- aframe[which(aframe$spline_cell_type == rec_ct),]
@@ -319,7 +324,7 @@ plot_RecLig_expression <- function(rec, lig, rec_ct, lig_ct){
 
 ## Tab 6 Convergence club and AT2 to ADI
 convergence_traj_single_gene <- function(gene_name = 'Krt8'){
-  gene <- h5read(epi_filename, gene_name)
+  gene <- rhdf5::h5read(epi_filename, gene_name)
   gene <- gene[match(rownames(convergence), epi_metafile$X)]
   
   aframe <- data.frame(convergence, gene)
@@ -331,10 +336,10 @@ convergence_traj_single_gene <- function(gene_name = 'Krt8'){
 }
 
 convergence_feature_plot <- function(gene_name = "Krt8"){
-  gene <- h5read(epi_filename, gene_name)
+  gene <- rhdf5::h5read(epi_filename, gene_name)
   gene <- gene[match(rownames(convergence), epi_metafile$X)]
   gene <- (gene - min(gene))/(max(gene) - min(gene))
-  H5close()
+  rhdf5::H5close()
   
   aframe <- data.frame(convergence, gene)
   
@@ -349,7 +354,7 @@ convergence_feature_plot <- function(gene_name = "Krt8"){
 
 ## Tab 7 Trajectory ADI to AT1
 adi_at1_traj_single_gene <- function(gene_name = 'Krt8'){
-  gene <- h5read(epi_filename, gene_name)
+  gene <- rhdf5::h5read(epi_filename, gene_name)
   gene <- gene[match(rownames(adi_at1), epi_metafile$X)]
   aframe <- data.frame(adi_at1, gene)
   melted <- melt(data = aframe, id.vars = "t", measure.vars = "gene")
@@ -359,10 +364,10 @@ adi_at1_traj_single_gene <- function(gene_name = 'Krt8'){
 }
 
 adi_at1_feature_plot <- function(gene_name = "Krt8"){
-  gene <- h5read(epi_filename, gene_name)
+  gene <- rhdf5::h5read(epi_filename, gene_name)
   gene <- gene[match(rownames(adi_at1), epi_metafile$X)]
   gene <- (gene - min(gene))/(max(gene) - min(gene))
-  H5close()
+  rhdf5::H5close()
   
   aframe <- data.frame(adi_at1, gene)
 

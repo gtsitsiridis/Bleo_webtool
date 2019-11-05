@@ -33,8 +33,8 @@ shinyUI(tagList(
                        menuItem("Whole Lung Cell-Cell Communication", tabName = "tab3_ccn"),
                        menuItem("Lung Epithelium Cell Type Signatures", tabName = "tab4_epi_celltype"),
                        # menuItem("Lung Epithelium Gene Kinetics", tabName = "tab5_epi_kinetics"),
-                       menuItem("Convergence trajectory", tabName = "tab6_convergence"),
-                       menuItem("Krt8 progenitors to AT1 trajectory", tabName = "tab7_AT1traj")
+                       menuItem("Convergence trajectory", tabName = "tab6_convergence")#,
+                       #menuItem("Krt8 progenitors to AT1 trajectory", tabName = "tab7_AT1traj")
                      ),
                      
                      conditionalPanel(
