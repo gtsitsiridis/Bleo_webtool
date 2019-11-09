@@ -84,12 +84,10 @@ shinyUI(tagList(
                        paste0("input.tabs == 'tab4_epi_celltype' || input.tabs == 'tab5_epi_kinetics'"),
                        selectizeInput("epi_gene", label="Query gene:", choices=NULL, options = list(maxOptions = 100)),
                        type = 2, color.background = "#222d32"),
-                    ####### ISSUE 
                      conditionalPanel(
                        "input.tabs == 'tab6_convergence'",
                        selectizeInput("conv_epi_gene", label="Query gene:", choices=NULL, options = list(maxOptions = 100))
                       ),
-                    ####### ISSUE 
                      conditionalPanel(
                        "input.tabs == 'tab7_AT1traj'",
                        selectizeInput("traj_epi_gene", label="Query gene:", choices=NULL, options = list(maxOptions = 100))
