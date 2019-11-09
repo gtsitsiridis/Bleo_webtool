@@ -73,6 +73,13 @@ shinyServer(function(input, output, session){
     at1adi_diffmap = NULL,
     at1adi_traj = NULL
   )
+  
+  
+  ### update selection fields
+  updateSelectizeInput(session, 'gene', choices = genes, selected = 'Sftpc', server = TRUE)
+  updateSelectizeInput(session, 'epi_gene', choices = epi_genes, selected = 'Sftpc', server = TRUE)
+  updateSelectizeInput(session, 'conv_epi_gene', choices = convergence_annot$Gene, selected = 'Sftpc', server = TRUE)
+  updateSelectizeInput(session, 'traj_epi_gene', choices = adi_at1_annot$Gene, selected = 'Sftpc', server = TRUE)
 
   observeEvent(input$gene, {
     req(input$gene)

@@ -51,7 +51,7 @@ shinyUI(tagList(
                        uiOutput("meta_cell_type_selector")),
                      conditionalPanel(
                        "input.tabs == 'tab1_whole_celltype' || input.tabs == 'tab2_whole_kinetics'",
-                       selectInput("gene", "Query gene:", genes, selected = "Sftpc")),
+                       selectizeInput("gene", label="Query gene:", choices=NULL, options = list(maxOptions = 100))),
                   
                        # uiOutput("gene_selector")),
                      conditionalPanel(
@@ -82,15 +82,17 @@ shinyUI(tagList(
                        uiOutput("epi_cell_type_selector")),
                      conditionalPanel(
                        paste0("input.tabs == 'tab4_epi_celltype' || input.tabs == 'tab5_epi_kinetics'"),
-                       selectInput("epi_gene", "Query gene:", epi_genes, selected = "Sftpc"),
+                       selectizeInput("epi_gene", label="Query gene:", choices=NULL, options = list(maxOptions = 100)),
                        type = 2, color.background = "#222d32"),
+                    ####### ISSUE 
                      conditionalPanel(
                        "input.tabs == 'tab6_convergence'",
-                       selectInput("conv_epi_gene", "Query gene:", convergence_annot$Gene, selected = "Sftpc")
+                       selectizeInput("conv_epi_gene", label="Query gene:", choices=NULL, options = list(maxOptions = 100))
                       ),
+                    ####### ISSUE 
                      conditionalPanel(
                        "input.tabs == 'tab7_AT1traj'",
-                       selectInput("traj_epi_gene", "Query gene:", adi_at1_annot$Gene, selected = "Sftpc")
+                       selectizeInput("traj_epi_gene", label="Query gene:", choices=NULL, options = list(maxOptions = 100))
                      ),
                      # conditionalPanel(
                      #   "input.tabs == 'tab4_epi_celltype' | input.tabs == 'tab5_epi_kinetics'",
