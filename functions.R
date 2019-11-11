@@ -56,7 +56,7 @@ genUMAPplot <- function(h5, meta, gene_name = 'Sftpc') {
   ggplot(dt) + geom_point(aes(UMAP1, UMAP2, col = gene), size = 0.3, alpha = .5) +
     guides(col = F) +
     ggtitle(gene_name) + sc +
-    annotate(geom = "text", x = coord[,1], y = coord[,2], label = rownames(coord))
+    annotate(geom = "text", x = coord[,1], y = coord[,2], label = rownames(coord), size = 3)
 }
 
 ## DotPlot (taken and adapted from Aging)
