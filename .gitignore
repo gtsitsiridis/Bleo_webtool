@@ -1,6 +1,7 @@
+*.RData
+*.xlsx
+*.h5
+*.txt
 .Rproj.user
-Bleo_webtool.Rproj
 .Rhistory
-.RData
-.Ruserdata
-data/*
+*.RDS

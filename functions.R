@@ -1,49 +1,20 @@
-# UMAP plot
-plot_UMAP_colored_by_expr <-
-  function(gene, expression.file = "data/Bleo_scaledData.h5") {
-    expr <- h5read(file = expression.file, name = gene)
-    
-    # Cut extreme quantiles off
-    #quants <- quantile(expr, c(0.05, 0.95))
-    #expr[which(expr <= quants[1])] <- quants[1]
-    #expr[which(expr >= quants[2])] <- quants[2]
-    
-    # Scale to 0 1
-    expr <- (expr - min(expr)) / (max(expr) - min(expr))
-    
-    # Generate UMAP plot
-    tmp <- data.frame(meta, expr)
-    ggplot(tmp, aes(x = UMAP1, y = UMAP2, color = expr)) +
-      geom_point(alpha = 0.8) +
-      scale_colour_gradient(low = "grey", high = "darkblue") +
-      ggtitle(gene)
-  }
+## My Version - Tidy
+## Define all Functions used in WebTool later on
+## for testing, go to ../my_version/outsource_functions.R
 
-# Spline kinetics plot
-genLinePlot <- function(celltype, gene) {
-  spline_results <- spline_results_list[[celltype]]
-  prop <- data.matrix(spline_results[,-c(1:3)])
-  day <-
-    unlist(lapply(colnames(prop), function(x)
-      strsplit(x, "_", fixed = T)[[1]][3]))
-  day[grep("PBS", colnames(prop))] <- "0"
-  day <- gsub("d", "", day)
-  day <- as.numeric(day)
-  
-  aframe <- data.frame(expression = prop[gene,], day)
-  
-  ggplot(aframe, aes(y = expression, x = day)) +
-    geom_point(col = "violet") +
-    geom_smooth(method = "loess") +
-    ylab(paste("Percent of cells expressing", gene)) + xlab("Days") +
-    ggtitle(gene)
+spinner <- function(ui_element) {
+  withSpinner(ui_element, type = 3, color.background = "white")
 }
 
 
-emptyPlot <- function() {
-  df <- data.frame(x = 5, y = 5, text = "not enough data")
+emptyPlot <- function(type="general") {
+  txt <- "not enough data"
+  if(type == "cc"){
+    txt <- "please click on row in table to select receptor-ligand pair" 
+  }
+  df <- data.frame(x = 5, y = 5, text = txt)
   p <- ggplot(df, aes(x, y, label = text)) +
-    geom_point(col = "white") + xlim(0, 10) + ylim(0, 10) + geom_text() + theme_bw() +
+    geom_point(col = "white") + xlim(0, 10) + ylim(0, 10) + geom_text(fontface="bold") + theme_bw() +
     theme(
       axis.title.x = element_blank(),
       axis.text.x = element_blank(),
@@ -59,17 +30,45 @@ emptyPlot <- function() {
   p
 }
 
-# Dot plot
-dotPlot <- function (gene_name = "Scgb1a1", dataset_name="hires") {
+## Define which cell types will be displayed in query list (give type for epi version)
+select_cell_type <- function(meta, column = "cell_type", type = F){
+  if(type == F){
+    ct <- unique(meta[, column])
+    ct<- ct[order(ct)]
+    return(ct[which(!is.na(ct))])
+  }
+  else{
+    ct <- unique(meta[meta$type == type, "cell_type"])
+    return(ct[order(ct)])
+  }
+}
+
+genUMAPplot <- function(h5, meta, gene_name = 'Sftpc') {
+  gene <- rhdf5::h5read(h5, gene_name)
+  gene <- (gene - min(gene))/(max(gene) - min(gene))
+  rhdf5::H5close()
+  dt <- cbind(meta[, c("UMAP1", "UMAP2")], expression = gene)
+  
+  asplit <- split(1:nrow(meta), meta$cell_type)
+  coord <- do.call(rbind, lapply(asplit, function(x) c(median(meta$UMAP1[x]), median(meta$UMAP2[x]))))
+  
+  sc <- scale_colour_gradientn(colours = magma(20, alpha = 0.5, direction = -1), limits= range(gene))
+  ggplot(dt) + geom_point(aes(UMAP1, UMAP2, col = gene), size = 0.3, alpha = .5) +
+    guides(col = F) +
+    ggtitle(gene_name) + sc +
+    annotate(geom = "text", x = coord[,1], y = coord[,2], label = rownames(coord), size = 3)
+}
+
+## DotPlot (taken and adapted from Aging)
+dotPlot <- function (h5, meta, gene_name = "Scgb1a1") {
+  meta$cell_type[meta$cell_type == "AM (Bleo)"] <- "AMs (Bleo)"
   # Defaults
   cols.use = c("lightgrey", "blue")
   plot.legend = FALSE
   do.return = FALSE
   x.lab.rot = FALSE
   
-  scale.func <- switch(EXPR = "radius",
-                       'size' = scale_size,
-                       'radius' = scale_radius,
+  scale.func <- switch(EXPR = "radius", 'size' = scale_size, 'radius' = scale_radius,
                        stop("'scale.by' must be either 'size' or 'radius'"))
   
   MinMax <- function (data, min, max) {
@@ -84,19 +83,19 @@ dotPlot <- function (gene_name = "Scgb1a1", dataset_name="hires") {
   }
   
   # Load gene expression
-  expression <-
-    h5read(expression_files[[dataset_name]], name = as.character(gene_name))
-  H5close() 
-  data.to.plot <- data.table(expression)
+  genExp <- rhdf5::h5read(h5, gene_name)
+  data.to.plot <- data.table(genExp)
   colnames(x = data.to.plot) <- "expression"
-  data.to.plot$id <- metadata[[dataset_name]]$cell.type
-  # filtering step: is there a cluster that has at least 10 cells.
-  if(data.to.plot[,sum(expression>0),by=id][,sum(V1 >= 5) == 0])
+  data.to.plot$id <- meta$cell_type
+
+  # filtering step: is there a cluster that has at least 10 cells. (5 no?)
+  if(data.to.plot[, sum(expression > 0), by = id][, sum(V1 >= 5) == 0])
     return(emptyPlot())
+  
   data.to.plot[, expression := (expression - mean(expression)) / sd(expression)]
   setnames(data.to.plot, "expression", gene_name)
   data.to.plot <-
-    data.to.plot %>% gather(key = genes.plot, value = expression,-c(id))
+    data.to.plot %>% gather(key = genes.plot, value = expression, -c(id))
   data.to.plot <- data.to.plot %>% group_by(id, genes.plot) %>%
     dplyr::summarize(avg.exp = mean(expm1(x = expression)),
                      pct.exp = PercentAbove(x = expression,  threshold = 0))
@@ -109,24 +108,18 @@ dotPlot <- function (gene_name = "Scgb1a1", dataset_name="hires") {
     ))
   data.to.plot$pct.exp[data.to.plot$pct.exp < 0] <- NA
   data.to.plot <- as.data.frame(data.to.plot)
-  colnames(data.to.plot) <-
-    c("Cell_type", "Gene", "AvgExpr", "PctExpressed", "AvgRelExpr")
-  
-  # bad <-
-  #   c("red_blood_cells",
-  #     "Gamma-Delta_T_cells",
-  #     "low_quality_cells")
-  # data.to.plot <-
-  #   data.to.plot[-match(bad, as.character(data.to.plot$Cell_type)),]
-   # data.to.plot <-data.to.plot[-which(is.na(data.to.plot$Cell_type)),]
-    
-  celltype_order <- rev(cell_types)
-  
-  data.to.plot$Cell_type <-
-    factor(data.to.plot$Cell_type, levels = celltype_order)
-  
+  colnames(data.to.plot) <- c("CellType", "Gene", "AvgExpr", "PctExpressed", "AvgRelExpr")
+  bad <- which(data.to.plot$CellType == "unassigned")
+  if(length(bad) > 0) data.to.plot <- data.to.plot[-bad,]
+  ## Exclude NA cell type (there are none in highres Epi)
+  if(sum(is.na(data.to.plot$CellType)) > 0){
+    data.to.plot <- data.to.plot[-which(is.na(data.to.plot$CellType)),]
+  }
+  data.to.plot$CellType[data.to.plot$CellType == "other activated club cells"] <- "club to ciliated"
+  data.to.plot$CellType <- factor(data.to.plot$CellType, levels = rev(sort(as.character(data.to.plot$CellType))))
+   
   p <-
-    ggplot(data = data.to.plot, mapping = aes(x = Gene, y = Cell_type)) +
+    ggplot(data = data.to.plot, mapping = aes(x = Gene, y = CellType)) +
     geom_point(mapping = aes(size = PctExpressed, color = AvgRelExpr)) +
     scale.func(range = c(0, 10), limits = c(NA, NA)) +
     theme(
@@ -140,55 +133,252 @@ dotPlot <- function (gene_name = "Scgb1a1", dataset_name="hires") {
     )
   p
 }
-
-genUMAPplot <- function(gene_name = 'Frem1', dataset_name="hires") {
-  gene <- h5read(expression_files[[dataset_name]], name = as.character(gene_name))
-  umap_coord <- metadata[[dataset_name]][,.(UMAP1, UMAP2)]  
-  # gene.min <- quantile(gene, 0.01)
-  # gene.max <- quantile(gene, 0.99)
-  # gene[which(gene > gene.max)] <- gene.max
-  # gene[which(gene < gene.min)] <- gene.min
-  H5close()
-  dt <- cbind(umap_coord, expression = gene)
-  high <- "darkblue"
-  if (all(gene == 0)) {
-    high = "grey"
-    
-  }
-  ggplot(dt) + geom_point(aes(UMAP1, UMAP2, col = gene), alpha = .5) +
-    guides(col = F) +
-    ggtitle(gene_name) + scale_color_continuous(low = "grey", high = high)
+## Plot mean expression on each measured day (sample needs to have min_cells 
+## cells expressing the gene to be considered)
+genLinePlot <- function(h5, gene, cell_type, meta, type = "meta_cell_type", min_cells = 5, smooth = F, epi = F){
+  genExp <- data.frame(expression = rhdf5::h5read(h5, gene))
+  genExp$cell_type = meta[, type]
+  genExp$identifier = meta$identifier
+  genExp$day = as.numeric(gsub("d", "", meta$grouping))
+  genExp = genExp[genExp$cell_type == cell_type,]
+  tmp = data.table(genExp)
+  tmp = tmp[, sum(expression > 0), by = identifier]
+  ids = tmp$identifier[tmp$V1 >= min_cells]
   
+  data.to.plot <- genExp[genExp$identifier %in% ids,]
+  data.to.plot <- aggregate(data.to.plot$expression, list(data.to.plot$identifier), mean)
+  names(data.to.plot) <- c("identifier", "expression")
+  map <- unique(meta[, c("identifier", "grouping")])
+  
+  ## Different Ordering on x-Axis if high resolution Epithelium is plotted (treat days as factors)
+  if(epi == T){
+    data.to.plot$day <- gsub("d", "", map[match(data.to.plot$identifier, map$identifier), "grouping"])
+    order <- sort(as.numeric(unique(data.to.plot$day)))
+    data.to.plot$day <- as.numeric(factor(data.to.plot$day, levels = order))
+    #order <- c(0, seq(2, 13), 15, 21, 28, 36, 54)
+    #data.to.plot$day <- factor(gsub("d", "", map[match(data.to.plot$identifier, map$identifier), "grouping"]), levels = order)
+  }
+  else{
+    data.to.plot$day <- as.numeric(gsub("d", "", map[match(data.to.plot$identifier, map$identifier), "grouping"]))
+  }
+  
+  if(smooth == T){
+    p <- ggplot(data.to.plot, aes(y = expression, x = day)) + 
+      geom_point(col = "palevioletred2") + ggtitle(gene) +
+      geom_smooth(se = T, level = 0.8, col = "royalblue", method = "loess") +
+      ylab(paste0("mean expression in ", cell_type)) + xlab("days")
+  }
+  else{
+    ## with error bars
+    agg <- ddply(data.to.plot, .(day), function(x) c(mean = mean(x$expression, na.rm = T), se = sd(x$expression, na.rm = T) / sqrt(length(x$expression))))
+    agg$lower <- agg$mean + agg$se
+    agg$upper <- agg$mean - agg$se
+    p <- ggplot(agg, aes(y = mean, x = day)) +   ## add col = id to have dot colour per sample
+      geom_errorbar(aes(ymin=lower, ymax=upper), width=.5, col = "gray") +
+      geom_point(col = "royalblue") + ggtitle(gene) +
+      stat_summary(fun.y = mean, geom = "smooth", lwd=1) +
+      ylab(paste0("mean expression in ", cell_type))
+    # if you specifically want labels on days we collected
+    #scale_x_discrete(name ="days", limits = sort(unique(agg$day))) 
+  }
+  if(epi == T)
+    p <- p + scale_x_discrete(limits = sort(unique(data.to.plot$day)), labels = order)
+  p
 }
 
-getMarkersTable <- function(cell_type = "Plasma cells",  dataset_name="hires", file) {
-  c_name <- "cluster"
-  if(dataset_name=="wholelung"){
-    c_name <- "cell.type"
+## Markers Table with more sophisticated Version for highres Epi
+getMarkersTable <- function(cell_type = "Alveolar macrophages", resolution = F) {
+  ## If no resolution is given, assume epithel markers table
+  if(resolution != F){
+    dt = epi_markers_table[epi_markers_table$type == resolution,]
+    dt <- dt[dt$cell_type == cell_type, ]
   }
-  markers_table <-  fread(file)
-  colnames(markers_table)[colnames(markers_table)==c_name] <- "c_name"
-  dt <-markers_table[c_name == cell_type,-c(which(colnames(markers_table) == "c_name")), with = FALSE]
+  else{
+    dt <- markers_table[markers_table$cell_type== cell_type, ]
+  }
+  dt <- dt[, c("gene", "avg_logFC", "p_val","p_val_adj")]
+  dt$avg_logFC <- round(dt$avg_logFC, 3)
+  dt$p_val <- as.numeric(formatC(dt$p_val, digits = 3, format = "e"))
+  dt$p_val_adj <- as.numeric(formatC(dt$p_val_adj, digits = 3, format = "e"))
   dt
 }
 
+## Lukas’ Versions - average Gene Kinetic Plots
+## As I get lots of Errors while reading in that table, extracted genes with pval < 0.25
+## In Bleo/short_scripts/check_nr_significant_genes.R
 plotSingleGene <- function(celltype = 'fibroblasts', gene = "Tnc"){
-  res <- suppressWarnings(read_excel(tab.file, sheet = celltype))
-  tmp <- res
-  stats <- tmp[,1:3]
-  if(!gene %in% stats$gene){
-    stop("Gene not found")
-  }
-  prop <- as.numeric(tmp[which(stats$gene == gene), -c(1:3)])
-  nom <- colnames(tmp)[-(1:3)]
+  tmp <- wholeLung_spline[[celltype]]
+  stats <- tmp[,1:2]
+  prop <- as.numeric(tmp[gene, -c(1:2)])
+  nom <- colnames(tmp)[-(1:2)]
   day <- unlist(lapply(nom, function(x) strsplit(x, '_', fixed = T)[[1]][3]))
   day[grep('PBS', nom)] <- 'd0'
   day <- gsub('d', '', day)
   day <- as.numeric(day)
+  aframe <- data.frame(prop, day)    
 
-  aframe <- data.frame(prop, day)
-  p <- ggplot(aframe, aes(y = prop, x = day)) +
+  nom <- paste(celltype, "(Spline regression P", signif(stats[gene, 1],2), ")")
+  
+  p <- ggplot(aframe, aes(y = prop, x = day)) + 
     geom_point(color = "violet") + geom_smooth(method = "loess") +
-    ylab(paste(gene, "expression")) + xlab("Days") + ggtitle(celltype)
+    ylab(paste("Relative", gene, "expression")) + xlab("Days") + ggtitle(nom)
   p
 }
+
+getWholeKinTable <- function(celltype = 'fibroblasts'){
+  dt <- wholeLung_spline[[celltype]]
+  dt$gene <- rownames(dt)
+  dt <- dt[order(dt$pval),c("gene", "pval","adj_pval")]
+  dt
+}
+
+## Only have significant genes as suggestions in query
+select_spline_genes <- function(cell_type = "alv_epithelium"){
+  genes <- spline_expr$gene[spline_expr$cell.type == cell_type]
+  return(genes)
+}
+
+getRecLigTable <- function(cell_type_rec = "Alveolar macrophages", cell_type_lig = "Classical monocytes") {
+  dt <- rec_lig[rec_lig$cluster.rec == cell_type_rec & rec_lig$cluster.lig == cell_type_lig, ]
+  # cols <- c(paste0(c("gene.", "metacelltype.", "avg_logFC.", "p_val.", "p_val_adj.", "spline_adj_pval_"), "rec"),
+  #           paste0(c("gene.", "metacelltype.", "avg_logFC.", "p_val.", "p_val_adj.", "spline_adj_pval_"), "lig"))
+  cols <- c("receptor", "cluster.rec", "logFC.rec", "pval.rec",
+            "ligand", "cluster.lig", "logFC.lig", "pval.lig")  
+  dt <- dt[, cols]
+  for(col in c("pval.lig", "pval.rec")
+    # paste0(c("avg_logFC.", "p_val.", "p_val_adj.", "spline_adj_pval_"), "rec"), 
+    #            paste0(c("avg_logFC.", "p_val.", "p_val_adj.", "spline_adj_pval_"), "lig"))
+    ){
+    dt[, col] <- suppressWarnings(as.numeric(formatC(dt[, col], digits = 3, format = "e")))
+  }
+  for(col in c("logFC.rec", "logFC.lig")
+      # c("avg_logFC.rec", "avg_logFC.lig")
+      ){
+    dt[, col] <- round(dt[, col], 3)
+  }
+  dt
+}
+
+## Tab 3 Average Expression of Ligand Receptor Pairs
+return_scaled_expr <- function(gene_name, cell_type, mode, type = "spline_cell_type"){
+  scale <- function(x) (x - min(x))/(max(x) - min(x))
+  
+  expr <- data.frame(rhdf5::h5read(filename, gene_name))
+  expr$cell_type = metafile[, type]
+    # gsub(" ", "_", 
+                        # metafile[, type]
+                        # )   ## different meta cell type sep
+  expr$day = as.numeric(gsub("d", "", metafile$grouping))
+  expr <- expr[expr$cell_type == cell_type, ]
+  expr <- na.omit(expr)
+  expr$expression <- scale(expr[, 1])
+  expr <- data.frame(expression = expr$expression, type = paste0(mode, ": ", gene_name, "   "), day = expr$day)
+  expr
+}
+
+plot_RecLig_expression <- function(rec, lig, rec_ct, lig_ct){
+  # For "Krt8 progenitors", "AT1 cells" and "AT2 cells" we will plot the expression based on "Alveolar epithelium"
+  if(rec_ct %in% c("Krt8 progenitors", "AT1 cells", "AT2 cells")) {
+    rec_ct <- "Alveolar epithelium"
+  }
+  
+  if(lig_ct %in% c("Krt8 progenitors", "AT1 cells", "AT2 cells")) {
+    lig_ct <- "Alveolar epithelium"
+  }
+  
+  gene <- rhdf5::h5read('data/WholeLung_data.h5', rec)
+  gene <- (gene - min(gene))/(max(gene) - min(gene))
+  rec_expr <- gene
+  
+  gene <- rhdf5::h5read('data/WholeLung_data.h5', lig)
+  gene <- (gene - min(gene))/(max(gene) - min(gene))
+  lig_expr <- gene
+  
+  rhdf5::H5close()
+  
+  aframe <- data.frame(rec_expr, metafile)
+  aframe <- aframe[which(aframe$spline_cell_type == rec_ct),]
+  means <- unlist(lapply(split(aframe$rec, aframe$identifier), mean))
+  day <- aframe$grouping[match(names(means), aframe$identifier)]
+  day <- as.numeric(gsub('d', '', day))
+  rec_matr <- data.frame(receptor = means, day)
+  
+  aframe <- data.frame(lig_expr, metafile)
+  aframe <- aframe[which(aframe$spline_cell_type == lig_ct),]
+  means <- unlist(lapply(split(aframe$lig, aframe$identifier), mean))
+  day <- aframe$grouping[match(names(means), aframe$identifier)]
+  day <- as.numeric(gsub('d', '', day))
+  lig_matr <- data.frame(ligand = means, day)
+  
+  rec_plot <- ggplot(rec_matr, aes(y = receptor, x = day)) +
+    geom_smooth(se = T, level = 0.8, method = "loess") +
+    ylab(paste(rec, "expression")) + xlab("days") + ggtitle(rec_ct)
+  
+  lig_plot <- ggplot(lig_matr, aes(y = ligand, x = day)) +
+    geom_smooth(se = T, level = 0.8, method = "loess") +
+    ylab(paste(lig, "expression")) + xlab("days") + ggtitle(lig_ct)
+  
+  grid.arrange(rec_plot, lig_plot, ncol = 2)
+  
+}
+
+## Tab 6 Convergence club and AT2 to ADI
+convergence_traj_single_gene <- function(gene_name = 'Krt8'){
+  gene <- rhdf5::h5read(epi_filename, gene_name)
+  gene <- gene[match(rownames(convergence), epi_metafile$X)]
+  
+  aframe <- data.frame(convergence, gene)
+  
+  melted <- melt(data = aframe, id.vars = "t", measure.vars = "gene")
+  
+  ggplot(melted, aes(y = value, x = t, group = variable, color = variable)) + geom_smooth(method = "loess") +
+    ylab(paste(gene_name, "expression")) + xlab("Pseudotime") + ggtitle("Convergence trajectory") + theme(legend.position="none")
+}
+
+convergence_feature_plot <- function(gene_name = "Krt8"){
+  gene <- rhdf5::h5read(epi_filename, gene_name)
+  gene <- gene[match(rownames(convergence), epi_metafile$X)]
+  gene <- (gene - min(gene))/(max(gene) - min(gene))
+  rhdf5::H5close()
+  
+  aframe <- data.frame(convergence, gene)
+  
+  sc <- scale_colour_gradientn(colours = magma(20, alpha = 0.5, direction = -1), limits= range(gene))
+  
+  dt <- aframe
+  
+  ggplot(dt) + geom_point(aes(DC1, DC2, col = gene), size = 0.5, alpha = .9) +
+    guides(col = F) +
+    ggtitle(gene_name) + sc#scale_color_continuous(low = "grey", high = high) 
+}
+
+## Tab 7 Trajectory ADI to AT1
+adi_at1_traj_single_gene <- function(gene_name = 'Krt8'){
+  gene <- rhdf5::h5read(epi_filename, gene_name)
+  gene <- gene[match(rownames(adi_at1), epi_metafile$X)]
+  aframe <- data.frame(adi_at1, gene)
+  melted <- melt(data = aframe, id.vars = "t", measure.vars = "gene")
+  
+  ggplot(melted, aes(y = value, x = t, group = variable, color = variable)) + geom_smooth(method = "loess") +
+    ylab(paste(gene_name, "expression")) + xlab("Pseudotime") + ggtitle("Krt8+ progenitors -> AT1 trajectory") + theme(legend.position="none")
+}
+
+adi_at1_feature_plot <- function(gene_name = "Krt8"){
+  gene <- rhdf5::h5read(epi_filename, gene_name)
+  gene <- gene[match(rownames(adi_at1), epi_metafile$X)]
+  gene <- (gene - min(gene))/(max(gene) - min(gene))
+  rhdf5::H5close()
+  
+  aframe <- data.frame(adi_at1, gene)
+
+  sc <- scale_colour_gradientn(colours = magma(20, alpha = 0.5, direction = -1), limits= range(gene))
+  
+  dt <- aframe
+  ggplot(dt) + geom_point(aes(umap1, umap2, col = gene), size = 2, alpha = .9) +
+    guides(col = F) +
+    ggtitle(gene_name) +  sc #+scale_color_continuous(low = "grey", high = high) 
+}
+
+
+
+

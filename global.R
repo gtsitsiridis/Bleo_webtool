@@ -1,23 +1,22 @@
-library(shiny)
-library(shinydashboard)
-library(shinycssloaders)
-library(ggthemes)
-library(rhdf5)
-library(data.table)
-library(plyr)
-library(dplyr)
+## My Version - Tidy
+## Read in all Global Variable prior and set filenames
+#library(rhdf5)
 library(ggplot2)
-library(ggrepel)
-library(plotly)
-library(tidyr)
+library(plyr)
+#library(Seurat)
+library(cowplot)
+# library(readxl)
+library(gridExtra)
 library(shiny)
 library(shinyjs)
+library(shinydashboard)
+library(shinycssloaders)
+library(data.table)
+library(tidyr)
+library(dplyr)
 library(gridExtra)
 library(grid)
-library(readxl)
-
-
-source("functions.R")
+library(viridis)
 
 checkFile <- function(f) {
   if(!file.exists(f)){
@@ -26,38 +25,62 @@ checkFile <- function(f) {
   print(paste("File :", f))
 }
 
-### File names
-expression_files <- list()
-expression_files$wholelung <- "data/current/expression/WholeLung_data.h5"
-expression_files$hires <- "data/current/expression/Epi_highres_data.h5"
-metadata_files <- list()
-metadata_files$hires <- "data/current/metadata/HiRes_metadata_final.txt"
-metadata_files$wholelung <- "data/current/metadata/WholeLung_metadata_final.txt"
-markers_cell_types.dir <- "data/current/markersCellTypes"
-genes.file <- "data/current/genes.txt"
-tab.file <- "data/current/Table_S2_(Realtime_regression).xlsx"
+css_file = "www/style.css"
+source("functions.R")
 
-metadata <- list()
+adi_at1_path <- "data/adi_at1.RDS"
+checkFile(adi_at1_path)
+adi_at1 <- readRDS(adi_at1_path)
 
-### Load files
-checkFile(expression_files$hires)
-checkFile(expression_files$wholelung)
-checkFile(metadata_files$hires)
-metadata$hires <- fread(metadata_files$hires)
-checkFile(metadata_files$wholelung)
-metadata$wholelung <- fread(metadata_files$wholelung)
+adi_at1_annot_path <- "data/adi_at1_annot.RDS"
+checkFile(adi_at1_annot_path)
+adi_at1_annot <- readRDS(adi_at1_annot_path)
+adi_at1_annot <- adi_at1_annot[order(adi_at1_annot$`P-value`),]
 
-cell_types <- unique(union(metadata$hires$cell.type, metadata$wholelung$cell.type))
-cell_types <- cell_types[which(!is.na(cell_types))]
-cell_types <- cell_types[order(cell_types)]
+convergence_path <- "data/convergence.RDS"
+checkFile(convergence_path)
+convergence <- readRDS(convergence_path)
 
-markers_cell_types_files <- list()
-markers_cell_types_files$hires <- list.files(file.path(markers_cell_types.dir, "hiRes"), full.names = TRUE)
-markers_cell_types_files$wholelung <- list.files(file.path(markers_cell_types.dir, "wholeLung"), full.names = TRUE)
-checkFile(genes.file)
-genes <- scan(what = character(), genes.file, sep = "\n")
-genes <- genes[order(genes)]
-checkFile(tab.file)
-tab.cell_types <- excel_sheets(path = tab.file)
-tab.cell_types <- tab.cell_types[tab.cell_types!="overview"]
+convergence_annot_path <- "data/convergence_annot.RDS"
+checkFile(convergence_annot_path)
+convergence_annot <- readRDS(convergence_annot_path)
+convergence_annot <- convergence_annot[order(convergence_annot$`P-value`),]
 
+## Whole Lung Files
+filename = "data/WholeLung_data.h5" 
+checkFile(filename)
+metafile_path = "data/wholelung_metafile.RDS"
+checkFile(metafile_path)
+metafile <- readRDS(metafile_path)
+genes_path <- "data/wholelung_genes.RDS"
+checkFile(genes_path)
+genes <- readRDS(genes_path)
+markers_table_path <- "data/wholelung_markers_table.RDS"
+checkFile(markers_table_path)
+markers_table <- readRDS(markers_table_path)
+
+## High Resolution Epithel Files
+epi_filename = "data/Epi_highres_data.h5"
+checkFile(epi_filename)
+epi_metafile_path <- "data/epi_metafile.RDS"
+checkFile(epi_metafile_path)
+epi_metafile <- readRDS(epi_metafile_path)
+epi_genes_path <- "data/epi_genes.RDS"
+checkFile(epi_genes_path)
+epi_genes <- readRDS(epi_genes_path)
+epi_markers_table_path <- "data/epi_markers_table.RDS"
+checkFile(epi_markers_table_path)
+epi_markers_table <- readRDS(epi_markers_table_path)
+spline_expr_path <- "data/spline_expr.RDS"
+checkFile(spline_expr_path)
+spline_expr <- readRDS(spline_expr_path)
+
+## Table from Spline fits for Cell-Cell Communication
+rec_lig_path <- "data/rec_lig.RDS"
+checkFile(rec_lig_path)
+rec_lig <- readRDS(rec_lig_path)
+
+## Whole Lung Spline Table
+wholeLung_spline_path <- "data/wholelung_spline.RDS"
+checkFile(wholeLung_spline_path)
+wholeLung_spline <- readRDS(wholeLung_spline_path)
